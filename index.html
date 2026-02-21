@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>🎈 BALLOON BURST</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Orbitron:wght@700&display=swap"
@@ -14,15 +14,39 @@
        全体のスタイル
        深みのあるダーク系グラデーションで大人っぽく
        =================================================== */
-        html,
-        body {
-            width: 100%;
+        /* htmlにも高さを指定するとiOSで安定します */
+        html {
             height: 100%;
+            height: -webkit-fill-available;
+            background-color: #87d8f5;
+            background-image: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        body {
+            width: 100vw;
+            /* 100vhではなく、アドレスバーを考慮した「100dvh」を使う */
+            height: 100dvh;
+            min-height: -webkit-fill-available;
+            /* iOS向けの保険 */
             overflow: hidden;
+
             /* iOS Safari特有の「バウンススクロール（ゴムバンド現象）」を無効化 */
             overscroll-behavior: none;
-            /* bodyのスクロールバーを完全に消して固定する */
-            position: fixed;
+
+            /* グラデーション描画バグの対策 */
+            background-color: #87d8f5;
+            /* 万が一グラデーションが失敗した時の保険色 */
+            background-image: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            /* これを入れると強制的に正しく描画されます */
+
+            font-family: 'Noto Sans JP', sans-serif;
+            cursor: default;
         }
 
         * {
@@ -34,14 +58,7 @@
             touch-action: manipulation;
         }
 
-        body {
-            /* 青空グラデーション — JS がフィーバー中に徐々に夕焼けへ変化させる */
-            background: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
-            transition: background 1.2s ease;
-            /* 秒ごとになめらかに変色 */
-            font-family: 'Noto Sans JP', sans-serif;
-            cursor: default;
-        }
+
 
         /* ---------------------------------------------------
        雲の装飾：白いもくもく形を復元
@@ -71,10 +88,11 @@
         #statusBar {
             position: fixed;
             top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            width: 100%;
+            padding: 0 16px;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
             align-items: center;
             z-index: 100;
         }
@@ -1124,7 +1142,13 @@
             const finalMax = Math.max(50, Math.max(finalMin, rMax));
 
             const size = randomBetween(finalMin, finalMax);
-            const x = randomBetween(size / 2, window.innerWidth - size / 2);
+
+            // 揺れ幅 (SWAY_AMOUNT) を考慮して、画面の端から確実にはみ出ないように発生X座標を制限する
+            const margin = (size / 2) + SWAY_AMOUNT;
+            // 画面幅が極端に狭い場合のフェールセーフ
+            const safeMargin = Math.min(margin, window.innerWidth / 3);
+            const x = randomBetween(safeMargin, window.innerWidth - safeMargin);
+
             const y = window.innerHeight + size + 60;
             const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX)
                 * (feverActive ? FEVER_SPEED_MULT : 1); // フィーバー中は高速化
@@ -1577,8 +1601,8 @@
          */
         function triggerFeverSky() {
             // JSの毎秒描画（setInterval）ではなく、CSSのtransition機能で自然に変化させる
-            document.body.style.transition = `background ${FEVER_START_SEC}s linear`;
-            document.body.style.background = `linear-gradient(to bottom,
+            document.body.style.transition = `background-image ${FEVER_START_SEC}s linear`;
+            document.body.style.backgroundImage = `linear-gradient(to bottom,
                 rgb(30, 10, 60) 0%,
                 rgb(140, 40, 80) 45%,
                 rgb(220, 90, 40) 100%)`;
@@ -1776,8 +1800,9 @@
             if (oldBanner) oldBanner.remove();
 
             // 背景とtransition速度を青空向けにリセット
-            document.body.style.transition = 'background 1.2s ease';
-            document.body.style.background = '';
+            // 空に設定('')するとChromeの挙動で真っ白になることがあるため、明示的にグラデーションを指定
+            document.body.style.transition = 'background-image 1.2s ease';
+            document.body.style.backgroundImage = 'linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%)';
 
             gameRunning = true;
 
