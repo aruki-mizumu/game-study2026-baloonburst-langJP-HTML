@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>🎈 BALLOON BURST</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Orbitron:wght@700&display=swap"
@@ -31,7 +31,8 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: manipulation;
+            /* manipulationはピンチズームを許可してしまうため、noneで全ズーム/パンを完全禁止 */
+            touch-action: none;
         }
 
         body {
@@ -1834,6 +1835,15 @@
                 e.preventDefault(); // 300ms以内の連続タップ（ダブルタップズーム）をキャンセル
             }
             lastTouchEnd = now;
+        }, { passive: false });
+
+        // iOS Safari 特有のピンチズームイベント（gesturestart, gesturechange）を強制ブロック
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
         }, { passive: false });
 
     </script>
