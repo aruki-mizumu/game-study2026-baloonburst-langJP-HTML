@@ -1921,6 +1921,12 @@
             e.preventDefault();
         }, { passive: false });
 
+        // ピンチズームやフリックなどのブラウザ標準ジェスチャーを強制的に無効化
+        // 画面全体が固定のゲームなので、touchmove を全てブロックしても問題ない
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
     </script>
 </body>
 
