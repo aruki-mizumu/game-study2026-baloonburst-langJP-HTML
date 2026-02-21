@@ -14,6 +14,17 @@
        全体のスタイル
        深みのあるダーク系グラデーションで大人っぽく
        =================================================== */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* iOS Safari特有の「バウンススクロール（ゴムバンド現象）」を無効化 */
+            overscroll-behavior: none;
+            /* bodyのスクロールバーを完全に消して固定する */
+            position: fixed;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -24,9 +35,6 @@
         }
 
         body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
             /* 青空グラデーション — JS がフィーバー中に徐々に夕焼けへ変化させる */
             background: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
             transition: background 1.2s ease;
