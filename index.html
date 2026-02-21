@@ -55,7 +55,8 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: manipulation;
+            touch-action: none;
+            /* iOS Safari のパンやズームをCSSレベルで完全無効化 */
         }
 
 
@@ -213,6 +214,8 @@
             will-change: transform, top;
             z-index: 5;
             /* 風船はカウントダウン（z-index:2）より前面 */
+            touch-action: none;
+            /* 風船に対する意図しない標準アクションを無効化 */
         }
 
         .balloon svg {
@@ -413,6 +416,8 @@
             transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s;
             margin-top: 24px;
             text-transform: uppercase;
+            touch-action: manipulation;
+            /* ボタンをタップする時のみ標準の操作を許可（ズームはしない設定） */
         }
 
         .game-btn.orange {
