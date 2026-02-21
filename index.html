@@ -1157,6 +1157,7 @@
 
             // ---- クリック（タップ）イベント ----
             el.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); // ←★追加：ブラウザの余計な挙動（ズーム等）を完全に禁止！
                 e.stopPropagation();
                 // 種類フラグを渡して、それぞれの処理を分ける
                 popBalloon(balloonData, el, e.clientX, e.clientY, isBad, isSpecial, isSuperBad);
