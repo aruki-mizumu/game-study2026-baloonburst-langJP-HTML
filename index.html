@@ -17,12 +17,10 @@
         html,
         body {
             width: 100%;
-            height: 100%;
+            height: 100vh;
             overflow: hidden;
             /* iOS Safari特有の「バウンススクロール（ゴムバンド現象）」を無効化 */
             overscroll-behavior: none;
-            /* bodyのスクロールバーを完全に消して固定する */
-            position: fixed;
         }
 
         * {
@@ -71,10 +69,11 @@
         #statusBar {
             position: fixed;
             top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            width: 100%;
+            padding: 0 16px;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
             align-items: center;
             z-index: 100;
         }
@@ -1124,7 +1123,13 @@
             const finalMax = Math.max(50, Math.max(finalMin, rMax));
 
             const size = randomBetween(finalMin, finalMax);
-            const x = randomBetween(size / 2, window.innerWidth - size / 2);
+
+            // 揺れ幅 (SWAY_AMOUNT) を考慮して、画面の端から確実にはみ出ないように発生X座標を制限する
+            const margin = (size / 2) + SWAY_AMOUNT;
+            // 画面幅が極端に狭い場合のフェールセーフ
+            const safeMargin = Math.min(margin, window.innerWidth / 3);
+            const x = randomBetween(safeMargin, window.innerWidth - safeMargin);
+
             const y = window.innerHeight + size + 60;
             const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX)
                 * (feverActive ? FEVER_SPEED_MULT : 1); // フィーバー中は高速化
