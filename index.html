@@ -117,10 +117,13 @@
         }
 
         #scoreBoard span {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
+            /* 1.6remから縮小してはみ出しを防止 */
             font-weight: bold;
             color: #ffffff;
             text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
+            font-variant-numeric: tabular-nums;
+            /* 数字の幅を固定してガタツキを防止 */
         }
 
         /* ---------------------------------------------------
@@ -144,9 +147,37 @@
         }
 
         #timerBoard span {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
+            /* 1.6remから縮小してはみ出しを防止 */
             font-weight: bold;
             text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
+            font-variant-numeric: tabular-nums;
+            /* 数字の幅を固定してガタツキを防止 */
+        }
+
+        /* 横幅の狭いスマホ向け（460px以下）のレイアウト自動縮小調整 */
+        @media (max-width: 460px) {
+
+            #scoreBoard,
+            #timerBoard {
+                padding: 6px 14px;
+                /* 横幅の余白を削る */
+                font-size: 0.85rem;
+                /* SCOREやTIMEの文字を小さく */
+                letter-spacing: 0.05em;
+            }
+
+            #scoreBoard span,
+            #timerBoard span {
+                font-size: 1.15rem;
+                /* 数字自体も少し小さくして、5桁でも圧迫しないように */
+            }
+
+            #statusBar {
+                padding: 0 10px;
+                /* 画面両端の安全マージンも削る */
+                top: 12px;
+            }
         }
 
         /* 残り5秒以下になったら赤く警告 */
@@ -657,6 +688,31 @@
                 background: rgba(255, 220, 0, 0.08);
             }
         }
+
+        /* ---------------------------------------------------
+           動的生成を避けるための共通アニメーションキーフレーム
+        --------------------------------------------------- */
+        @keyframes flashOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes sparkAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(var(--spark-scale-start, 1));
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -667,7 +723,7 @@
        ゲーム中に常に画面上部に表示される
        ===================================================== -->
     <div id="statusBar">
-        <div id="scoreBoard">SCORE &nbsp;<span id="scoreValue">0</span> pts</div>
+        <div id="scoreBoard">SCORE &nbsp;<span id="scoreValue">00000</span> pts</div>
         <div id="timerBoard">TIME &nbsp;<span id="timerValue">30</span>s</div>
     </div>
 
@@ -1334,12 +1390,8 @@
         pointer-events: none;
         animation: flashOut 0.4s ease-out forwards;
       `;
-            // アニメーションを動的に追加
-            const style = document.createElement('style');
-            style.textContent = `@keyframes flashOut { from { opacity:1; } to { opacity:0; } }`;
-            document.head.appendChild(style);
             document.body.appendChild(flash);
-            setTimeout(() => { flash.remove(); style.remove(); }, 400);
+            setTimeout(() => flash.remove(), 400);
         }
 
         /**
@@ -1356,11 +1408,8 @@
                 pointer-events: none;
                 animation: flashOut 0.5s ease-out forwards;
             `;
-            const style = document.createElement('style');
-            style.textContent = `@keyframes flashOut { from { opacity:1; } to { opacity:0; } }`;
-            document.head.appendChild(style);
             document.body.appendChild(flash);
-            setTimeout(() => { flash.remove(); style.remove(); }, 500);
+            setTimeout(() => flash.remove(), 500);
         }
 
         /**
@@ -1392,17 +1441,13 @@
                     position:absolute; width:${sparkSize}px; height:${sparkSize}px;
                     background:${sparkColor}; border-radius:50%;
                     left:50%; top:50%;
+                    --tx: ${Math.cos(angle) * dist}px;
+                    --ty: ${Math.sin(angle) * dist}px;
+                    --spark-scale-start: 1.2;
                     transform:translate(-50%,-50%);
                     box-shadow: 0 0 6px ${sparkColor};
-                    animation:sspark-${i} 0.7s ease-out forwards;
+                    animation:sparkAnim 0.7s ease-out forwards;
                 `;
-                const kf = document.createElement('style');
-                kf.textContent = `@keyframes sspark-${i} {
-                    0%   { transform:translate(-50%,-50%) scale(1.2); opacity:1; }
-                    100% { transform:translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px)) scale(0); opacity:0; }
-                }`;
-                document.head.appendChild(kf);
-                spark.addEventListener('animationend', () => kf.remove(), { once: true });
                 pop.appendChild(spark);
             }
             document.body.appendChild(pop);
@@ -1432,16 +1477,12 @@
           position:absolute; width:10px; height:10px;
           background:${sparkColor}; border-radius:50%;
           left:50%; top:50%;
+          --tx: ${Math.cos(angle) * dist}px;
+          --ty: ${Math.sin(angle) * dist}px;
+          --spark-scale-start: 1;
           transform:translate(-50%,-50%);
-          animation:spark-${i} 0.5s ease-out forwards;
+          animation:sparkAnim 0.5s ease-out forwards;
         `;
-                const kf = document.createElement('style');
-                kf.textContent = `@keyframes spark-${i} {
-          0%   { transform:translate(-50%,-50%) scale(1); opacity:1; }
-          100% { transform:translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px)) scale(0); opacity:0; }
-        }`;
-                document.head.appendChild(kf);
-                spark.addEventListener('animationend', () => kf.remove(), { once: true });
                 pop.appendChild(spark);
             }
             document.body.appendChild(pop);
@@ -1469,7 +1510,11 @@
          */
         function addScore(points, x, y, isBad, isSpecial) {
             score += points;
-            document.getElementById('scoreValue').textContent = score;
+            // スコアを5桁（例：00150）にゼロ埋めする処理。マイナスの場合は符号を含めて桁数を調整
+            const displayScore = score >= 0
+                ? String(score).padStart(5, '0')
+                : '-' + String(Math.abs(score)).padStart(4, '0');
+            document.getElementById('scoreValue').textContent = displayScore;
 
             // 加点・減点・レアで見た目を変える
             const el = document.createElement('div');
@@ -1498,12 +1543,12 @@
         function startCountdown() {
             timeLeft = GAME_DURATION_SEC;
             feverActive = false;
-            document.getElementById('timerValue').textContent = timeLeft;
+            document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
             document.getElementById('timerBoard').classList.remove('danger');
 
             countdownTimer = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timerValue').textContent = timeLeft;
+                document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
 
                 // (スマホでの負荷軽減のため、JSでの毎秒の背景色更新は廃止し、CSS transitionに任せる)
 
@@ -1784,7 +1829,7 @@
 
             // スコアをリセット
             score = 0;
-            document.getElementById('scoreValue').textContent = '0';
+            document.getElementById('scoreValue').textContent = '00000';
 
             // 残っている風船を消す（再プレイ時）
             balloons.forEach(b => b.el.remove());
