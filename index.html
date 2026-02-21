@@ -19,6 +19,8 @@
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         body {
@@ -153,6 +155,15 @@
         .balloon svg {
             display: block;
             filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.25));
+        }
+
+        /* スマホ向け：重いエフェクトを簡略化 */
+        @media (max-width: 768px) {
+
+            .balloon svg,
+            .cloud {
+                filter: none;
+            }
         }
 
         .balloon .string {
@@ -1094,7 +1105,17 @@
                 roll < SUPER_BAD_CHANCE + SPECIAL_BALLOON_CHANCE + BAD_BALLOON_CHANCE;    // わるい 20%
 
             // ---- 風船パラメータをランダムに決める ----
-            const size = randomBetween(BALLOON_MIN_SIZE, BALLOON_MAX_SIZE);
+            // スマホ対応：画面幅の 1/4 〜 1/3 程度に収まるように動的に計算。PC向けに上限は既存サイズを適用。
+            const dynamicMin = window.innerWidth * 0.25;
+            const dynamicMax = window.innerWidth * 0.33;
+            const rMin = Math.min(BALLOON_MIN_SIZE, dynamicMin);
+            const rMax = Math.min(BALLOON_MAX_SIZE, dynamicMax);
+
+            // 極端に小さくなりすぎないよう下限も設定 (例: 50px)
+            const finalMin = Math.max(50, rMin);
+            const finalMax = Math.max(50, Math.max(finalMin, rMax));
+
+            const size = randomBetween(finalMin, finalMax);
             const x = randomBetween(size / 2, window.innerWidth - size / 2);
             const y = window.innerHeight + size + 60;
             const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX)
@@ -1451,12 +1472,7 @@
                 timeLeft--;
                 document.getElementById('timerValue').textContent = timeLeft;
 
-                // フィーバー中：残り時間に応じて背景を変色
-                if (feverActive) {
-                    // t: 0（フィーバー開始）→ 1（残り0秒）
-                    const t = 1 - timeLeft / FEVER_START_SEC;
-                    updateSkyGradient(t);
-                }
+                // (スマホでの負荷軽減のため、JSでの毎秒の背景色更新は廃止し、CSS transitionに任せる)
 
                 // フィーバー前カウントダウン表示領域: FEVER_START_SEC + FEVER_COUNTDOWN_SEC 秒 → FEVER_START_SEC+1 秒
                 const cdSec = FEVER_START_SEC + FEVER_COUNTDOWN_SEC; // = 15秒
@@ -1522,6 +1538,10 @@
             // bodyに.feverクラスを付けて色喫を開始
             document.body.classList.add('fever');
 
+            // 背景色を夕暮れ〜夜空へCSSのtransitionで滑らかに変化させる（JSの毎秒描画から変更）
+            triggerFeverSky();
+
+
             // 「🎉 FEVER TIME!」バナーを表示
             const banner = document.createElement('div');
             banner.id = 'feverBanner';
@@ -1544,39 +1564,17 @@
          * 上に向かうスチャカチッティな音列
          */
         /**
-         * フィーバー中に背景グラデーションを青空→夕暮へ補間する
-         * @param {number} t - 0（フィーバー開始）から1（タイムアップ）の進行度
+         * フィーバー中に背景グラデーションを夕暮れ〜夜空へ変化させる（負荷軽減版）
          */
-        function updateSkyGradient(t) {
-            // カラーストップの定義： [R, G, B]
-            // 昔方天空（t=0）→ゴールデンアワ（t=0.5）→深夜紫変彩（t=1）
-            const stops = [
-                // [top sky,      mid sky,        bottom sky]
-                { top: [91, 191, 237], mid: [135, 216, 245], bot: [201, 238, 255] }, // t=0 青天
-                { top: [235, 130, 40], mid: [240, 170, 80], bot: [255, 220, 130] }, // t=0.5 黄昆
-                { top: [30, 10, 60], mid: [140, 40, 80], bot: [220, 90, 40] }, // t=1.0 山手滜
-            ];
-
-            // tの位置に応じてどのエリアを補間するか決める
-            const lerp = (a, b, t) => Math.round(a + (b - a) * t);
-            const lerpArr = (a, b, t) => a.map((v, i) => lerp(v, b[i], t));
-
-            let s1, s2, lt;
-            if (t < 0.5) {
-                s1 = stops[0]; s2 = stops[1]; lt = t * 2;
-            } else {
-                s1 = stops[1]; s2 = stops[2]; lt = (t - 0.5) * 2;
-            }
-
-            const top = lerpArr(s1.top, s2.top, lt);
-            const mid = lerpArr(s1.mid, s2.mid, lt);
-            const bot = lerpArr(s1.bot, s2.bot, lt);
-
+        function triggerFeverSky() {
+            // JSの毎秒描画（setInterval）ではなく、CSSのtransition機能で自然に変化させる
+            document.body.style.transition = `background ${FEVER_START_SEC}s linear`;
             document.body.style.background = `linear-gradient(to bottom,
-                rgb(${top}) 0%,
-                rgb(${mid}) 45%,
-                rgb(${bot}) 100%)`;
+                rgb(30, 10, 60) 0%,
+                rgb(140, 40, 80) 45%,
+                rgb(220, 90, 40) 100%)`;
         }
+
 
 
         function playFeverJingle() {
@@ -1762,7 +1760,8 @@
             const oldBanner = document.getElementById('feverBanner');
             if (oldBanner) oldBanner.remove();
 
-            // 背景を青空に戻す
+            // 背景とtransition速度を青空向けにリセット
+            document.body.style.transition = 'background 1.2s ease';
             document.body.style.background = '';
 
             gameRunning = true;
