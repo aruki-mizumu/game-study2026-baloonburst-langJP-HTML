@@ -155,28 +155,34 @@
             /* 数字の幅を固定してガタツキを防止 */
         }
 
-        /* 横幅の狭いスマホ向け（460px以下）のレイアウト自動縮小調整 */
-        @media (max-width: 460px) {
+        /* 横幅の狭いスマホ向け（480px以下）に2段組みへ変更 */
+        @media (max-width: 480px) {
+
+            #statusBar {
+                padding: 0 12px;
+                top: 10px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                pointer-events: none;
+                /* 奥のタップを邪魔しない */
+            }
 
             #scoreBoard,
             #timerBoard {
-                padding: 6px 14px;
-                /* 横幅の余白を削る */
+                padding: 4px 14px;
                 font-size: 0.85rem;
-                /* SCOREやTIMEの文字を小さく */
                 letter-spacing: 0.05em;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                pointer-events: auto;
+                /* ボタン部分はタップ不可にならないようにするが、元々ただの表示だが一応 */
             }
 
             #scoreBoard span,
             #timerBoard span {
                 font-size: 1.15rem;
-                /* 数字自体も少し小さくして、5桁でも圧迫しないように */
-            }
-
-            #statusBar {
-                padding: 0 10px;
-                /* 画面両端の安全マージンも削る */
-                top: 12px;
             }
         }
 
