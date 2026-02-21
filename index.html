@@ -14,29 +14,19 @@
        全体のスタイル
        深みのあるダーク系グラデーションで大人っぽく
        =================================================== */
-        html,
-        body {
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            /* iOS Safari特有の「バウンススクロール（ゴムバンド現象）」を無効化 */
-            overscroll-behavior: none;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
         }
 
         body {
-            /* 青空グラデーション — JS がフィーバー中に徐々に夕焼けへ変化させる */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            /* 青空時の爆駘をイメージした醒やかなグラデーション */
             background: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
-            transition: background 1.2s ease;
-            /* 秒ごとになめらかに変色 */
             font-family: 'Noto Sans JP', sans-serif;
             cursor: default;
         }
@@ -69,65 +59,56 @@
         #statusBar {
             position: fixed;
             top: 16px;
-            left: 0;
-            width: 100%;
-            padding: 0 16px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: space-between;
+            gap: 20px;
             align-items: center;
             z-index: 100;
         }
 
         /* スコア表示 */
         #scoreBoard {
-            background: rgba(0, 20, 60, 0.45);
-            /* 少し深みのある半透明パネル */
-            backdrop-filter: blur(14px);
-            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             padding: 10px 28px;
             font-size: 1rem;
             letter-spacing: 0.08em;
-            color: rgba(255, 255, 255, 0.95);
-            /* ほぼ白 */
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
             white-space: nowrap;
             font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
         }
 
         #scoreBoard span {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
+            color: #e2e8f0;
         }
 
         /* ---------------------------------------------------
        残り時間表示
        --------------------------------------------------- */
         #timerBoard {
-            background: rgba(0, 20, 60, 0.45);
-            backdrop-filter: blur(14px);
-            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             padding: 10px 28px;
             font-size: 1rem;
             letter-spacing: 0.08em;
-            color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
             white-space: nowrap;
-            transition: border-color 0.3s, color 0.3s, background 0.3s;
+            transition: border-color 0.3s, color 0.3s;
             font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
         }
 
         #timerBoard span {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
         }
 
         /* 残り5秒以下になったら赤く警告 */
@@ -155,22 +136,11 @@
             cursor: pointer;
             transform-origin: center bottom;
             will-change: transform, top;
-            z-index: 5;
-            /* 風船はカウントダウン（z-index:2）より前面 */
         }
 
         .balloon svg {
             display: block;
             filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.25));
-        }
-
-        /* スマホ向け：重いエフェクトを簡略化 */
-        @media (max-width: 768px) {
-
-            .balloon svg,
-            .cloud {
-                filter: none;
-            }
         }
 
         .balloon .string {
@@ -216,51 +186,28 @@
             }
         }
 
-        /* 浮遊テキスト共通ベース */
-        .float-label {
+        /* 破裂テキスト「ポン！」 */
+        .pop-text {
             position: absolute;
             pointer-events: none;
+            font-size: 1.8rem;
             font-weight: bold;
+            color: #ff4500;
             text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff;
             z-index: 60;
-        }
-
-        .pop-text {
-            font-size: 1.8rem;
-            color: #ff4500;
             animation: floatUp 0.7s ease-out forwards;
         }
 
+        /* わるい風船タップ時のテキスト */
         .bad-text {
+            position: absolute;
+            pointer-events: none;
             font-size: 1.6rem;
+            font-weight: bold;
             color: #cc0000;
+            text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff;
+            z-index: 60;
             animation: floatUp 0.9s ease-out forwards;
-        }
-
-        .score-add {
-            font-size: 1.4rem;
-            color: #2ecc71;
-            animation: floatUp 0.8s ease-out forwards;
-        }
-
-        .score-sub {
-            font-size: 1.6rem;
-            color: #e03030;
-            animation: floatUp 0.9s ease-out forwards;
-        }
-
-        .score-special {
-            font-size: 2.2rem;
-            color: #FFD700;
-            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b, 0 0 10px #FFD700;
-            animation: floatUp 1s ease-out forwards;
-        }
-
-        .special-text {
-            font-size: 2rem;
-            color: #FFD700;
-            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b, 0 0 14px rgba(255, 215, 0, 0.8);
-            animation: floatUp 1s ease-out forwards;
         }
 
         @keyframes floatUp {
@@ -275,13 +222,47 @@
             }
         }
 
-        /* 風船アニメーション */
-        .balloon.special {
-            animation: specialBounce 0.7s ease-in-out infinite alternate;
+        /* スコア加算「+1」 */
+        .score-add {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2ecc71;
+            text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff;
+            z-index: 60;
+            animation: floatUp 0.8s ease-out forwards;
         }
 
-        .balloon.super-bad {
-            animation: superBadPulse 0.9s ease-in-out infinite alternate;
+        /* スコア減点「-20」*/
+        .score-sub {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #e03030;
+            text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff;
+            z-index: 60;
+            animation: floatUp 0.9s ease-out forwards;
+        }
+
+        /* レア風船の高得点「+5」— 金色でひときわ目立つ */
+        .score-special {
+            position: absolute;
+            pointer-events: none;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b,
+                0 0 10px #FFD700;
+            z-index: 60;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        /* ★ レア風船（.special）のぴょんぴょんバウンスアニメーション
+           目立って「これは特別！」とひと目で伝わるようにする */
+        .balloon.special {
+            animation: specialBounce 0.7s ease-in-out infinite alternate;
         }
 
         @keyframes specialBounce {
@@ -296,6 +277,11 @@
             }
         }
 
+        /* 大外れバッド風船（.super-bad）— レア風船と同じ軽量な scale+opacity パルス */
+        .balloon.super-bad {
+            animation: superBadPulse 0.9s ease-in-out infinite alternate;
+        }
+
         @keyframes superBadPulse {
             from {
                 transform: scale(1);
@@ -306,6 +292,19 @@
                 transform: scale(1.1);
                 opacity: 0.8;
             }
+        }
+
+        /* ★ 「やったー！」テキスト */
+        .special-text {
+            position: absolute;
+            pointer-events: none;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b,
+                0 0 14px rgba(255, 215, 0, 0.8);
+            z-index: 60;
+            animation: floatUp 1s ease-out forwards;
         }
 
         /* ---------------------------------------------------
@@ -431,21 +430,6 @@
             text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.7),
                 0 0 24px rgba(100, 200, 255, 0.4);
             letter-spacing: 0.06em;
-            animation: titleBreath 1.4s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleBreath {
-            from {
-                transform: scale(1);
-                opacity: 1;
-                text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.7), 0 0 24px rgba(100, 200, 255, 0.3);
-            }
-
-            to {
-                transform: scale(1.14);
-                opacity: 0.82;
-                text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.9), 0 0 60px rgba(100, 200, 255, 1), 0 0 100px rgba(80, 160, 255, 0.6);
-            }
         }
 
         /* スタートボタンをコーラルピンクに */
@@ -455,19 +439,6 @@
             font-family: 'Noto Sans JP', sans-serif;
             font-size: 1.2rem;
             letter-spacing: 0.06em;
-            animation: btnFloat 0.7s ease-in-out infinite alternate;
-        }
-
-        @keyframes btnFloat {
-            from {
-                transform: translateY(0px) scale(1);
-                box-shadow: 0 4px 20px rgba(255, 122, 162, 0.5), 0 2px 0 #c04060;
-            }
-
-            to {
-                transform: translateY(-18px) scale(1.1);
-                box-shadow: 0 24px 48px rgba(255, 122, 162, 0.75), 0 6px 0 #c04060;
-            }
         }
 
         #startBtn:hover {
@@ -477,166 +448,31 @@
         /* ---------------------------------------------------
            結果画面もタイトル画面と同じ青空テーマに統一する
         --------------------------------------------------- */
-        /* ---------------------------------------------------
-           リザルト画面：夢の星空テーマ
-        --------------------------------------------------- */
         #resultOverlay {
             background: linear-gradient(to bottom,
-                    #0a0520 0%,
-                    #0d1440 35%,
-                    #1a0a3a 65%,
-                    #2a0e1e 100%);
-            backdrop-filter: blur(4px);
+                    rgba(100, 190, 240, 0.95) 0%,
+                    rgba(160, 220, 255, 0.95) 50%,
+                    rgba(220, 243, 255, 0.95) 100%);
+            backdrop-filter: blur(8px);
         }
 
         #resultOverlay h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: #e8d8ff;
-            text-shadow: 0 0 20px rgba(180, 140, 255, 0.8),
-                0 0 40px rgba(140, 80, 255, 0.4);
-            letter-spacing: 0.1em;
-        }
-
-        #resultScore {
-            color: #ffe97a;
-            text-shadow: 0 0 20px rgba(255, 220, 100, 0.8),
-                0 0 40px rgba(255, 160, 40, 0.4);
-        }
-
-        #resultMsg {
-            color: rgba(200, 180, 255, 0.8);
+            font-family: 'Noto Sans JP', sans-serif;
+            color: #0e5c8a;
+            text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.7),
+                0 0 24px rgba(100, 200, 255, 0.4);
             letter-spacing: 0.06em;
         }
 
-        /* 星のツインクルアニメーション */
-        .star {
-            position: absolute;
-            border-radius: 50%;
-            background: white;
-            animation: twinkle var(--dur) ease-in-out infinite alternate;
+        #resultScore {
+            color: #1a4f7a;
+            text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.6),
+                0 0 20px rgba(100, 180, 255, 0.3);
         }
 
-        @keyframes twinkle {
-            from {
-                opacity: var(--lo);
-                transform: scale(1);
-            }
-
-            to {
-                opacity: var(--hi);
-                transform: scale(1.6);
-            }
-        }
-
-        /* ---------------------------------------------------
-           フィーバーバナー（画面中央に一瞬表示）
-        --------------------------------------------------- */
-        #feverBanner {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            z-index: 2;
-            /* 風船（z-index:5）の後ろに移動 */
-        }
-
-        #feverBanner .fever-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.6rem, 5vw, 3rem);
-            /* 半分程度に縮小 */
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.6);
-            /* 変透明度を下げる */
-            text-shadow:
-                0 0 12px #ff0,
-                0 0 24px #f80;
-            letter-spacing: 0.12em;
-            animation: feverIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @keyframes feverIn {
-            from {
-                transform: scale(0.4) rotate(-8deg);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
-        }
-
-        /* フィーバー前カウントダウン数字（5→…→1） */
-        #feverCountdown {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 2;
-            /* 風船（z-index:5）の後ろ、背景の前 */
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.55);
-            text-shadow: 0 0 20px #f80, 0 0 50px #ff0;
-            line-height: 1;
-            text-align: center;
-        }
-
-        #feverCountdown .cd-label {
-            font-size: clamp(1rem, 3vw, 1.5rem);
-            letter-spacing: 0.2em;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        #feverCountdown .cd-number {
-            font-size: clamp(6rem, 20vw, 12rem);
-            display: block;
-            animation: countPop 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
-
-        @keyframes countPop {
-            from {
-                transform: scale(1.8);
-                opacity: 0.4;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* フィーバー中の覙の点滅ロード（bodyに.feverクラスを付ける） */
-        body.fever::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 1;
-            animation: feverFlash 0.5s linear infinite alternate;
-        }
-
-        @keyframes feverFlash {
-            0% {
-                background: rgba(255, 100, 0, 0.08);
-            }
-
-            33% {
-                background: rgba(255, 0, 150, 0.08);
-            }
-
-            66% {
-                background: rgba(0, 180, 255, 0.08);
-            }
-
-            100% {
-                background: rgba(255, 220, 0, 0.08);
-            }
+        #resultMsg {
+            color: #2e7fa8;
+            letter-spacing: 0.06em;
         }
     </style>
 </head>
@@ -706,16 +542,6 @@
         const GAME_DURATION_SEC = 30; // ゲームの制限時間（秒）
 
         // =====================================================
-        // フィーバータイムの定数
-        //    残り時間が FEVER_START_SEC 秒になったら発動
-        // =====================================================
-        const FEVER_START_SEC = 10;   // フィーバー開始の残り秒数
-        const FEVER_INTERVAL_MS = 80;   // フィーバー中の生成間隔（ms）↓120→80で密度アップ
-        const FEVER_SCORE_MULT = 2;    // フィーバー中の通常風船スコア倍率
-        const FEVER_COUNTDOWN_SEC = 5;   // フィーバー前に表示するカウントダウン秒数
-        const FEVER_SPEED_MULT = 1.8;  // フィーバー中の風船上昇速度倍率
-
-        // =====================================================
         // ③ 新機能③の定数
         //    お邪魔キャラ（わるい風船）の出現確率とペナルティ
         // =====================================================
@@ -739,15 +565,14 @@
         // =====================================================
         // ④ グローバル変数
         // =====================================================
-        let score = 0;
-        let balloons = [];
-        let spawnTimer = null;
-        let countdownTimer = null;
-        let animationId = null;
-        let timeLeft = GAME_DURATION_SEC;
-        let gameRunning = false;
-        let frame = 0;
-        let feverActive = false;  // フィーバータイム中かどうか
+        let score = 0;       // 現在のスコア
+        let balloons = [];      // 画面上の風船データ配列
+        let spawnTimer = null;    // 風船生成タイマー（setInterval の ID）
+        let countdownTimer = null; // カウントダウンタイマー（setInterval の ID）
+        let animationId = null;    // requestAnimationFrame の ID
+        let timeLeft = GAME_DURATION_SEC; // 残り時間（秒）
+        let gameRunning = false;   // ゲームが動いているかどうか
+        let frame = 0;       // アニメーションのフレーム数（揺れ計算用）
 
         // =====================================================
         // ⑤ Web Audio API のセットアップ
@@ -1112,27 +937,10 @@
                 roll < SUPER_BAD_CHANCE + SPECIAL_BALLOON_CHANCE + BAD_BALLOON_CHANCE;    // わるい 20%
 
             // ---- 風船パラメータをランダムに決める ----
-            // スマホ対応：画面幅の 1/4 〜 1/3 程度に収まるように動的に計算。PC向けに上限は既存サイズを適用。
-            const dynamicMin = window.innerWidth * 0.25;
-            const dynamicMax = window.innerWidth * 0.33;
-            const rMin = Math.min(BALLOON_MIN_SIZE, dynamicMin);
-            const rMax = Math.min(BALLOON_MAX_SIZE, dynamicMax);
-
-            // 極端に小さくなりすぎないよう下限も設定 (例: 50px)
-            const finalMin = Math.max(50, rMin);
-            const finalMax = Math.max(50, Math.max(finalMin, rMax));
-
-            const size = randomBetween(finalMin, finalMax);
-
-            // 揺れ幅 (SWAY_AMOUNT) を考慮して、画面の端から確実にはみ出ないように発生X座標を制限する
-            const margin = (size / 2) + SWAY_AMOUNT;
-            // 画面幅が極端に狭い場合のフェールセーフ
-            const safeMargin = Math.min(margin, window.innerWidth / 3);
-            const x = randomBetween(safeMargin, window.innerWidth - safeMargin);
-
+            const size = randomBetween(BALLOON_MIN_SIZE, BALLOON_MAX_SIZE);
+            const x = randomBetween(size / 2, window.innerWidth - size / 2);
             const y = window.innerHeight + size + 60;
-            const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX)
-                * (feverActive ? FEVER_SPEED_MULT : 1); // フィーバー中は高速化
+            const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX);
             const swayOffset = Math.random() * Math.PI * 2;
 
             // ---- DOM 要素を作る ----
@@ -1170,7 +978,6 @@
 
             // ---- クリック（タップ）イベント ----
             el.addEventListener('pointerdown', (e) => {
-                e.preventDefault(); // ←★追加：ブラウザの余計な挙動（ズーム等）を完全に禁止！
                 e.stopPropagation();
                 // 種類フラグを渡して、それぞれの処理を分ける
                 popBalloon(balloonData, el, e.clientX, e.clientY, isBad, isSpecial, isSuperBad);
@@ -1251,7 +1058,7 @@
 
                 // 「DANGER!」テキスト
                 const superBadText = document.createElement('div');
-                superBadText.className = 'float-label bad-text';
+                superBadText.className = 'bad-text';
                 superBadText.textContent = '☠️ DANGER!';
                 superBadText.style.cssText = `left:${cx - 55}px; top:${cy - 55}px;
                     font-size:2rem; color:#ff2200;`;
@@ -1268,7 +1075,7 @@
                 playFanfareSound();
                 showGoldFlash();
                 const specialText = document.createElement('div');
-                specialText.className = 'float-label special-text';
+                specialText.className = 'special-text';
                 specialText.textContent = '⭐ やったー！';
                 specialText.style.left = (cx - 55) + 'px';
                 specialText.style.top = (cy - 50) + 'px';
@@ -1284,7 +1091,7 @@
                 playBuzzerSound();
                 showRedFlash();
                 const badText = document.createElement('div');
-                badText.className = 'float-label bad-text';
+                badText.className = 'bad-text';
                 badText.textContent = '💀 ダメ！';
                 badText.style.left = (cx - 40) + 'px';
                 badText.style.top = (cy - 40) + 'px';
@@ -1296,9 +1103,7 @@
                 // 通常の風船の場合
                 playPopSound();
                 showPopEffect(cx, cy, balloonData.size);
-                // フィーバー中は通常風船のスコアを FEVER_SCORE_MULT 倍にする
-                const normalPts = 50 * (feverActive ? FEVER_SCORE_MULT : 1);
-                addScore(normalPts, cx, cy, false);
+                addScore(50, cx, cy, false); // 通常風船: +50pts
             }
         }
 
@@ -1428,7 +1233,7 @@
             document.body.appendChild(pop);
 
             const text = document.createElement('div');
-            text.className = 'float-label pop-text';
+            text.className = 'pop-text';
             text.textContent = 'ポン！';
             text.style.left = (x - 30) + 'px';
             text.style.top = (y - 40) + 'px';
@@ -1455,11 +1260,11 @@
             // 加点・減点・レアで見た目を変える
             const el = document.createElement('div');
             if (isSpecial) {
-                el.className = 'float-label score-special';
+                el.className = 'score-special'; // 金色の大きな表示
             } else if (isBad) {
-                el.className = 'float-label score-sub';
+                el.className = 'score-sub';     // 赤い減点表示
             } else {
-                el.className = 'float-label score-add';
+                el.className = 'score-add';     // 緑の加点表示
             }
             el.textContent = (points >= 0 ? '+' : '') + points;
             el.style.left = (x - 20) + 'px';
@@ -1477,140 +1282,28 @@
          * 0になったらゲームを終了する
          */
         function startCountdown() {
+            // timeLeft を初期値にリセット
             timeLeft = GAME_DURATION_SEC;
-            feverActive = false;
             document.getElementById('timerValue').textContent = timeLeft;
             document.getElementById('timerBoard').classList.remove('danger');
 
+            // setInterval で1秒ごとに処理を繰り返す
             countdownTimer = setInterval(() => {
-                timeLeft--;
+                timeLeft--; // 残り時間を1秒減らす
+
+                // 表示を更新する
                 document.getElementById('timerValue').textContent = timeLeft;
 
-                // (スマホでの負荷軽減のため、JSでの毎秒の背景色更新は廃止し、CSS transitionに任せる)
-
-                // フィーバー前カウントダウン表示領域: FEVER_START_SEC + FEVER_COUNTDOWN_SEC 秒 → FEVER_START_SEC+1 秒
-                const cdSec = FEVER_START_SEC + FEVER_COUNTDOWN_SEC; // = 15秒
-                if (timeLeft <= cdSec && timeLeft > FEVER_START_SEC) {
-                    const remaining = timeLeft - FEVER_START_SEC; // 5,4,3,2,1
-                    showFeverCountdown(remaining);
-                }
-
-                // 残り10秒でフィーバータイム開始
-                if (timeLeft === FEVER_START_SEC && !feverActive) {
-                    startFeverTime();
-                }
-
-                // 残り5秒以下でタイマー警告
+                // 残り5秒以下になったら警告スタイルに切り替える
                 if (timeLeft <= 5) {
                     document.getElementById('timerBoard').classList.add('danger');
                 }
 
+                // 残り時間が 0 になったらゲーム終了
                 if (timeLeft <= 0) {
                     endGame();
                 }
-            }, 1000);
-        }
-
-        /**
-         * フィーバー前のカウントダウン数字を画面中央に表示 / 更新する
-         * @param {number} n - 残りカウントダウン秒数（5→→1）
-         */
-        function showFeverCountdown(n) {
-            // 既存要素または新規作成
-            let cd = document.getElementById('feverCountdown');
-            if (!cd) {
-                cd = document.createElement('div');
-                cd.id = 'feverCountdown';
-                document.body.appendChild(cd);
-            }
-            // 数字を再規設することで countPop アニメーションを再生する
-            cd.innerHTML = `
-                <span class="cd-label">🟠 FEVER COMING 🟠</span>
-                <span class="cd-number">${n}</span>
-            `;
-            // animationの再起動のために一度 display:none を挿む
-            const numEl = cd.querySelector('.cd-number');
-            numEl.style.animation = 'none';
-            void numEl.offsetWidth; // reflow
-            numEl.style.animation = 'countPop 0.25s cubic-bezier(0.22,1,0.36,1) both';
-        }
-
-        /**
-         * フィーバータイム開始：風船生成を急加速し、演出を添える
-         */
-        function startFeverTime() {
-            feverActive = true;
-
-            // カウントダウン要素を削除
-            const cdEl = document.getElementById('feverCountdown');
-            if (cdEl) cdEl.remove();
-
-            // スポッーン間隔を急加速
-            clearInterval(spawnTimer);
-            spawnTimer = setInterval(spawnBalloon, FEVER_INTERVAL_MS);
-
-            // bodyに.feverクラスを付けて色喫を開始
-            document.body.classList.add('fever');
-
-            // 背景色を夕暮れ〜夜空へCSSのtransitionで滑らかに変化させる（JSの毎秒描画から変更）
-            triggerFeverSky();
-
-
-            // 「🎉 FEVER TIME!」バナーを表示
-            const banner = document.createElement('div');
-            banner.id = 'feverBanner';
-            banner.innerHTML = '<div class="fever-text">🎉 FEVER TIME! 🎉</div>';
-            document.body.appendChild(banner);
-
-            // フィーバー音
-            playFeverJingle();
-
-            // 1.5秒後にバナーをフェードアウト
-            setTimeout(() => {
-                banner.style.transition = 'opacity 0.5s';
-                banner.style.opacity = '0';
-                setTimeout(() => banner.remove(), 500);
-            }, 1500);
-        }
-
-        /**
-         * フィーバー開始時の決定的なジングル音
-         * 上に向かうスチャカチッティな音列
-         */
-        /**
-         * フィーバー中に背景グラデーションを夕暮れ〜夜空へ変化させる（負荷軽減版）
-         */
-        function triggerFeverSky() {
-            // JSの毎秒描画（setInterval）ではなく、CSSのtransition機能で自然に変化させる
-            document.body.style.transition = `background ${FEVER_START_SEC}s linear`;
-            document.body.style.background = `linear-gradient(to bottom,
-                rgb(30, 10, 60) 0%,
-                rgb(140, 40, 80) 45%,
-                rgb(220, 90, 40) 100%)`;
-        }
-
-
-
-        function playFeverJingle() {
-            if (!audioCtx) return;
-            const notes = [
-                { freq: 659, time: 0.00 },
-                { freq: 784, time: 0.10 },
-                { freq: 988, time: 0.20 },
-                { freq: 1319, time: 0.30 },
-            ];
-            notes.forEach(({ freq, time }) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
-                gain.gain.setValueAtTime(0.25, audioCtx.currentTime + time);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.18);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(audioCtx.currentTime + time);
-                osc.stop(audioCtx.currentTime + time + 0.2);
-            });
+            }, 1000); // 1000ミリ秒 = 1秒
         }
 
         // =====================================================
@@ -1647,15 +1340,7 @@
             const msg = getResultMessage(score);
             document.getElementById('resultMsg').textContent = msg;
 
-            // フィーバー状態をリセット
-            feverActive = false;
-            document.body.classList.remove('fever');
-            const banner = document.getElementById('feverBanner');
-            if (banner) banner.remove();
-
             // 結果画面を表示する（非表示 → 表示に切り替え）
-            // 星空エフェクトを生成してから表示
-            showStars();
             document.getElementById('resultOverlay').style.display = 'flex';
         }
 
@@ -1664,40 +1349,6 @@
          * @param {number} finalScore - 最終スコア
          * @returns {string} メッセージ文字列
          */
-        /**
-         * リザルト画面に輝く星をランダム配置する
-         * CSS カスタムプロパティでひとつひとつ違うタイミングでまたたく
-         */
-        function showStars() {
-            const overlay = document.getElementById('resultOverlay');
-            clearStars();
-
-            for (let i = 0; i < 80; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                const size = Math.random() < 0.15 ? 3 : Math.random() < 0.5 ? 2 : 1;
-                const dur = (1.2 + Math.random() * 2.8).toFixed(2); // 1.2s〜4s
-                const lo = (0.1 + Math.random() * 0.3).toFixed(2);
-                const hi = (0.6 + Math.random() * 0.4).toFixed(2);
-                const colors = ['white', 'white', 'white', '#ffe97a', '#aad4ff', '#ffd0f0'];
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                star.style.cssText = `
-                    width:${size}px; height:${size}px;
-                    left:${(Math.random() * 100).toFixed(1)}%;
-                    top:${(Math.random() * 100).toFixed(1)}%;
-                    background:${color};
-                    --dur:${dur}s; --lo:${lo}; --hi:${hi};
-                    animation-delay:${(Math.random() * 2).toFixed(2)}s;
-                `;
-                overlay.appendChild(star);
-            }
-        }
-
-        /** リザルト画面の星をすべて削除する（リトライ時） */
-        function clearStars() {
-            document.querySelectorAll('#resultOverlay .star').forEach(s => s.remove());
-        }
-
         function getResultMessage(finalScore) {
             if (finalScore >= 5000) return 'PERFECT — 頂点に立った';
             if (finalScore >= 3000) return 'EXCELLENT — 見事なプレイ';
@@ -1749,16 +1400,9 @@
          * 「はじめる」「もういちどあそぶ」ボタンを押したときに呼ぶ
          */
         function startGame() {
-            // == 連続タップバグ防止 ==
-            // 既にゲームが走っている・アニメーションループが回っている場合は、二重起動をブロックする
-            if (gameRunning) return;
-            if (animationId) cancelAnimationFrame(animationId);
-            if (spawnTimer) clearInterval(spawnTimer);
-            if (countdownTimer) clearInterval(countdownTimer);
             // タイトル・結果の両オーバーレイを隠す
             document.getElementById('titleOverlay').style.display = 'none';
             document.getElementById('resultOverlay').style.display = 'none';
-            clearStars();
 
             // タイマーの警告スタイルをリセット
             document.getElementById('timerBoard').classList.remove('danger');
@@ -1771,18 +1415,6 @@
             balloons.forEach(b => b.el.remove());
             balloons = [];
             frame = 0;
-
-            // フィーバー状態をリセット
-            feverActive = false;
-            document.body.classList.remove('fever');
-            const oldCd = document.getElementById('feverCountdown');
-            if (oldCd) oldCd.remove();
-            const oldBanner = document.getElementById('feverBanner');
-            if (oldBanner) oldBanner.remove();
-
-            // 背景とtransition速度を青空向けにリセット
-            document.body.style.transition = 'background 1.2s ease';
-            document.body.style.background = '';
 
             gameRunning = true;
 
