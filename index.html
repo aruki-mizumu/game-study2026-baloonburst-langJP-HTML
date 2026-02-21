@@ -1736,6 +1736,12 @@
          * 「はじめる」「もういちどあそぶ」ボタンを押したときに呼ぶ
          */
         function startGame() {
+            // == 連続タップバグ防止 ==
+            // 既にゲームが走っている・アニメーションループが回っている場合は、二重起動をブロックする
+            if (gameRunning) return;
+            if (animationId) cancelAnimationFrame(animationId);
+            if (spawnTimer) clearInterval(spawnTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
             // タイトル・結果の両オーバーレイを隠す
             document.getElementById('titleOverlay').style.display = 'none';
             document.getElementById('resultOverlay').style.display = 'none';
@@ -1799,9 +1805,15 @@
         });
 
         // =====================================================
-        // ⑰ Safari等のダブルタップズーム・ピンチズーム防止策
+        // ⑰ Safari等のダブルタップズーム・ピンチズーム全体防止
         // =====================================================
+
+        // 画面全体への無関係なタップでのズーム（背景や端のタップ）を防止する
         document.addEventListener('touchstart', (e) => {
+            // ボタン以外の場所をタッチした時はデフォルトの挙動（ズームやスクロール）を止める
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+            }
             if (e.touches.length > 1) {
                 e.preventDefault(); // 2本指以上の操作（ピンチズーム）を禁止
             }
@@ -1814,7 +1826,7 @@
                 e.preventDefault(); // 300ms以内の連続タップ（ダブルタップズーム）をキャンセル
             }
             lastTouchEnd = now;
-        }, false);
+        }, { passive: false });
 
     </script>
 </body>
