@@ -825,7 +825,19 @@
        タイトル画面（ゲーム開始前に表示）
        ===================================================== -->
     <div id="titleOverlay" class="overlay">
-        <h1>🎈 バルーン<br>バースト！</h1>
+        <style>
+            @keyframes titleShadowPulse {
+                from {
+                    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.15)) drop-shadow(0 0 12px rgba(100, 200, 255, 0.4));
+                }
+
+                to {
+                    filter: drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 32px rgba(100, 200, 255, 0.8));
+                }
+            }
+        </style>
+        <img src="title.jpg" alt="バルーンバースト！"
+            style="max-width: 98vw; max-height: 40vh; object-fit: contain; margin-bottom: 24px; animation: titleShadowPulse 1.4s ease-in-out infinite alternate; border-radius: 12px;">
         <p style="font-size:1.1rem; color:#1a5f8a; margin-bottom:6px;">バルーンをタップして割ろう！</p>
         <p style="font-size:0.85rem; color:#2e7fa8;">
             ⚠️ 黒いバルーンは触らないで！&nbsp;<strong style="color:#c03030;">−20 pts</strong>ペナルティ<br>
