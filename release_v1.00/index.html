@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🎈 BALLOON BURST</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Orbitron:wght@700&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        /* ===================================================
+       全体のスタイル
+       深みのあるダーク系グラデーションで大人っぽく
+       =================================================== */
+        /* htmlにも高さを指定するとiOSで安定します */
+        html {
+            height: 100%;
+            height: -webkit-fill-available;
+            background-color: #87d8f5;
+            background-image: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        body {
+            width: 100vw;
+            /* 100vhではなく、アドレスバーを考慮した「100dvh」を使う */
+            height: 100dvh;
+            min-height: -webkit-fill-available;
+            /* iOS向けの保険 */
+            overflow: hidden;
+
+            /* iOS Safari特有の「バウンススクロール（ゴムバンド現象）」を無効化 */
+            overscroll-behavior: none;
+
+            /* グラデーション描画バグの対策 */
+            background-color: #87d8f5;
+            /* 万が一グラデーションが失敗した時の保険色 */
+            background-image: linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            /* これを入れると強制的に正しく描画されます */
+
+            font-family: 'Noto Sans JP', sans-serif;
+            cursor: default;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            /* iOS Safari のパンやズームをCSSレベルで完全無効化 */
+        }
+
+
+
+        /* ---------------------------------------------------
+       雲の装飾：白いもくもく形を復元
+       --------------------------------------------------- */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.88;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+            animation: floatCloud linear infinite;
+        }
+
+        @keyframes floatCloud {
+            from {
+                transform: translateX(-200px);
+            }
+
+            to {
+                transform: translateX(110vw);
+            }
+        }
+
+        /* ---------------------------------------------------
+       ステータスバー（スコア＋残り時間）
+       --------------------------------------------------- */
+        #statusBar {
+            position: fixed;
+            top: 16px;
+            left: 0;
+            width: 100%;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        /* スコア表示 */
+        #scoreBoard {
+            background: rgba(0, 20, 60, 0.45);
+            /* 少し深みのある半透明パネル */
+            backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            border-radius: 12px;
+            padding: 10px 28px;
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.95);
+            /* ほぼ白 */
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        #scoreBoard span {
+            font-size: 1.3rem;
+            /* 1.6remから縮小してはみ出しを防止 */
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
+            font-variant-numeric: tabular-nums;
+            /* 数字の幅を固定してガタツキを防止 */
+        }
+
+        /* ---------------------------------------------------
+       残り時間表示
+       --------------------------------------------------- */
+        #timerBoard {
+            background: rgba(0, 20, 60, 0.45);
+            backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            border-radius: 12px;
+            padding: 10px 28px;
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+            transition: border-color 0.3s, color 0.3s, background 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        #timerBoard span {
+            font-size: 1.3rem;
+            /* 1.6remから縮小してはみ出しを防止 */
+            font-weight: bold;
+            text-shadow: 0 0 12px rgba(120, 200, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.8);
+            font-variant-numeric: tabular-nums;
+            /* 数字の幅を固定してガタツキを防止 */
+        }
+
+        /* 横幅の狭いスマホ向け（480px以下）に2段組みへ変更 */
+        @media (max-width: 480px) {
+
+            #statusBar {
+                padding: 0 12px;
+                top: 10px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                pointer-events: none;
+                /* 奥のタップを邪魔しない */
+            }
+
+            #scoreBoard,
+            #timerBoard {
+                padding: 4px 14px;
+                font-size: 0.85rem;
+                letter-spacing: 0.05em;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                pointer-events: auto;
+                /* ボタン部分はタップ不可にならないようにするが、元々ただの表示だが一応 */
+            }
+
+            #scoreBoard span,
+            #timerBoard span {
+                font-size: 1.15rem;
+            }
+        }
+
+        /* 残り5秒以下になったら赤く警告 */
+        #timerBoard.danger {
+            border-color: rgba(255, 71, 87, 0.7);
+            color: #ff6b6b;
+            animation: pulse 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        /* ---------------------------------------------------
+       風船のスタイル
+       --------------------------------------------------- */
+        .balloon {
+            position: absolute;
+            cursor: pointer;
+            transform-origin: center bottom;
+            will-change: transform, top;
+            z-index: 5;
+            /* 風船はカウントダウン（z-index:2）より前面 */
+            touch-action: none;
+            /* 風船に対する意図しない標準アクションを無効化 */
+        }
+
+        .balloon svg {
+            display: block;
+            filter: drop-shadow(2px 3px 4px rgba(0, 0, 0, 0.25));
+        }
+
+        /* スマホ向け：重いエフェクトを簡略化 */
+        @media (max-width: 768px) {
+
+            .balloon svg,
+            .cloud {
+                filter: none;
+            }
+        }
+
+        .balloon .string {
+            display: block;
+            width: 2px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.35);
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        /* ---------------------------------------------------
+       わるい風船（お邪魔キャラ）の紐は暗い色にする
+       --------------------------------------------------- */
+        .balloon.bad .string {
+            background: rgba(80, 0, 0, 0.6);
+        }
+
+        /* ---------------------------------------------------
+       破裂エフェクト
+       --------------------------------------------------- */
+        .pop-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            animation: popAnim 0.5s ease-out forwards;
+        }
+
+        @keyframes popAnim {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+
+            60% {
+                transform: scale(1.6);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        /* 浮遊テキスト共通ベース */
+        .float-label {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff;
+            z-index: 60;
+        }
+
+        .pop-text {
+            font-size: 1.8rem;
+            color: #ff4500;
+            animation: floatUp 0.7s ease-out forwards;
+        }
+
+        .bad-text {
+            font-size: 1.6rem;
+            color: #cc0000;
+            animation: floatUp 0.9s ease-out forwards;
+        }
+
+        .score-add {
+            font-size: 1.4rem;
+            color: #2ecc71;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        .score-sub {
+            font-size: 1.6rem;
+            color: #e03030;
+            animation: floatUp 0.9s ease-out forwards;
+        }
+
+        .score-special {
+            font-size: 2.2rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b, 0 0 10px #FFD700;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        .score-super-rare {
+            font-size: 2.8rem;
+            color: #00FF00;
+            font-weight: 900;
+            text-shadow: 2px 2px 0 #005500, -2px -2px 0 #005500, 2px -2px 0 #005500, -2px 2px 0 #005500, 0 0 20px #00FF00;
+            animation: floatUp 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            z-index: 100;
+        }
+
+        .time-add {
+            font-size: 2rem;
+            color: #FFFFFF;
+            font-weight: 900;
+            text-shadow: 2px 2px 0 #FF007F, -2px -2px 0 #FF007F, 2px -2px 0 #FF007F, -2px 2px 0 #FF007F, 0 4px 8px rgba(0, 0, 0, 0.6);
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        .time-sub {
+            font-size: 2.2rem;
+            color: #FFFFFF;
+            font-weight: 900;
+            text-shadow: 2px 2px 0 #0055FF, -2px -2px 0 #0055FF, 2px -2px 0 #0055FF, -2px 2px 0 #0055FF, 0 4px 8px rgba(0, 0, 0, 0.6);
+            animation: dropDown 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        .special-text {
+            font-size: 2rem;
+            color: #FFD700;
+            text-shadow: 1px 1px 0 #b8860b, -1px -1px 0 #b8860b, 0 0 14px rgba(255, 215, 0, 0.8);
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        .super-rare-text {
+            font-size: 2.5rem;
+            color: #00FF00;
+            font-weight: 900;
+            text-shadow: 2px 2px 0 #005500, -2px -2px 0 #005500, 0 0 20px rgba(0, 255, 0, 0.9);
+            animation: floatUp 1.2s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-70px) scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        @keyframes dropDown {
+            0% {
+                transform: translateY(0) scale(1.4);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(40px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .balloon.special {
+            animation: specialBounce 0.7s ease-in-out infinite alternate;
+        }
+
+        .balloon.super-rare {
+            animation: superRarePulse 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate;
+            z-index: 100 !important;
+        }
+
+        /* シュールなフェードアウト用アニメーション画像 */
+        .surreal-pop {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            animation: surrealFadeOut 2s forwards ease-in-out;
+            max-width: 80vw;
+            max-height: 80vh;
+            /* 加工せず元画像のまま表示 */
+        }
+
+        @keyframes surrealFadeOut {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.8) translateY(0);
+            }
+
+            10% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.0) translateY(-10px);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.0) translateY(-100px);
+            }
+
+            /* そのまま上にスーッと消える */
+        }
+
+        .balloon.super-bad {
+            animation: superBadPulse 0.9s ease-in-out infinite alternate;
+        }
+
+        @keyframes specialBounce {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            to {
+                transform: scale(1.08);
+                opacity: 0.82;
+            }
+        }
+
+        @keyframes superBadPulse {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            to {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        /* ---------------------------------------------------
+       オーバーレイ共通：毛ガラス＋ダーク
+       --------------------------------------------------- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 10, 30, 0.82);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+        }
+
+        .overlay h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            color: #e2e8f0;
+            text-shadow: 0 0 20px rgba(100, 180, 255, 0.5);
+            margin-bottom: 16px;
+            line-height: 1.3;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+
+        .overlay p {
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 0.04em;
+        }
+
+        /* ---------------------------------------------------
+       ボタン共通スタイル
+       --------------------------------------------------- */
+        .game-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            padding: 14px 48px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s;
+            margin-top: 24px;
+            text-transform: uppercase;
+            touch-action: manipulation;
+            /* ボタンをタップする時のみ標準の操作を許可（ズームはしない設定） */
+        }
+
+        .game-btn.orange {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5), 0 2px 0 #312e81;
+        }
+
+        .game-btn.orange:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(99, 102, 241, 0.6), 0 4px 0 #312e81;
+        }
+
+        .game-btn.orange:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4), 0 0 0 #312e81;
+        }
+
+        .game-btn.blue {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5), 0 2px 0 #0369a1;
+        }
+
+        .game-btn.blue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(14, 165, 233, 0.55), 0 4px 0 #0369a1;
+        }
+
+        .game-btn.blue:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4), 0 0 0 #0369a1;
+        }
+
+        /* ---------------------------------------------------
+       結果画面のスコア表示
+       --------------------------------------------------- */
+        #resultScore {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 12vw, 6rem);
+            font-weight: bold;
+            color: #e2e8f0;
+            text-shadow: 0 0 30px rgba(100, 180, 255, 0.6);
+            line-height: 1;
+            margin: 8px 0;
+        }
+
+        /* 結果メッセージ */
+        #resultMsg {
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            color: rgba(255, 255, 255, 0.55);
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        /* ---------------------------------------------------
+           タイトル画面だけ明るく可愛い雰囲気に上書きする
+           ゲーム中・結果画面のダークテーマとは独立した設定
+        --------------------------------------------------- */
+        #titleOverlay {
+            /* 晴れた青空をイメージしたグラデーション */
+            background: linear-gradient(to bottom,
+                    rgba(100, 190, 240, 0.95) 0%,
+                    rgba(160, 220, 255, 0.95) 50%,
+                    rgba(220, 243, 255, 0.95) 100%);
+            backdrop-filter: blur(8px);
+        }
+
+        /* タイトルは青空に映える深い海色に */
+        #titleOverlay h1 {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: clamp(2rem, 8vw, 4rem);
+            color: #0e5c8a;
+            text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.7),
+                0 0 24px rgba(100, 200, 255, 0.4);
+            letter-spacing: 0.06em;
+            animation: titleBreath 1.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleBreath {
+            from {
+                transform: scale(1);
+                opacity: 1;
+                text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.7), 0 0 24px rgba(100, 200, 255, 0.3);
+            }
+
+            to {
+                transform: scale(1.14);
+                opacity: 0.82;
+                text-shadow: 2px 3px 0 rgba(255, 255, 255, 0.9), 0 0 60px rgba(100, 200, 255, 1), 0 0 100px rgba(80, 160, 255, 0.6);
+            }
+        }
+
+        /* スタートボタンをコーラルピンクに */
+        #startBtn {
+            background: linear-gradient(135deg, #ff7aa2, #ff9a5c);
+            box-shadow: 0 4px 20px rgba(255, 122, 162, 0.5), 0 2px 0 #c04060;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.06em;
+            animation: btnFloat 0.7s ease-in-out infinite alternate;
+        }
+
+        @keyframes btnFloat {
+            from {
+                transform: translateY(0px) scale(1);
+                box-shadow: 0 4px 20px rgba(255, 122, 162, 0.5), 0 2px 0 #c04060;
+            }
+
+            to {
+                transform: translateY(-18px) scale(1.1);
+                box-shadow: 0 24px 48px rgba(255, 122, 162, 0.75), 0 6px 0 #c04060;
+            }
+        }
+
+        #startBtn:hover {
+            box-shadow: 0 8px 28px rgba(255, 122, 162, 0.6), 0 4px 0 #c04060;
+        }
+
+        /* ---------------------------------------------------
+           結果画面もタイトル画面と同じ青空テーマに統一する
+        --------------------------------------------------- */
+        /* ---------------------------------------------------
+           リザルト画面：夢の星空テーマ
+        --------------------------------------------------- */
+        #resultOverlay {
+            background: linear-gradient(to bottom,
+                    #0a0520 0%,
+                    #0d1440 35%,
+                    #1a0a3a 65%,
+                    #2a0e1e 100%);
+            backdrop-filter: blur(4px);
+        }
+
+        #resultOverlay h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: #e8d8ff;
+            text-shadow: 0 0 20px rgba(180, 140, 255, 0.8),
+                0 0 40px rgba(140, 80, 255, 0.4);
+            letter-spacing: 0.1em;
+        }
+
+        #resultScore {
+            color: #ffe97a;
+            text-shadow: 0 0 20px rgba(255, 220, 100, 0.8),
+                0 0 40px rgba(255, 160, 40, 0.4);
+        }
+
+        #resultMsg {
+            color: rgba(200, 180, 255, 0.8);
+            letter-spacing: 0.06em;
+        }
+
+        /* 星のツインクルアニメーション */
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: twinkle var(--dur) ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from {
+                opacity: var(--lo);
+                transform: scale(1);
+            }
+
+            to {
+                opacity: var(--hi);
+                transform: scale(1.6);
+            }
+        }
+
+        /* ---------------------------------------------------
+           フィーバーバナー（画面中央に一瞬表示）
+        --------------------------------------------------- */
+        #feverBanner {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 2;
+            /* 風船（z-index:5）の後ろに移動 */
+        }
+
+        #feverBanner .fever-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.6rem, 5vw, 3rem);
+            /* 半分程度に縮小 */
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.6);
+            /* 変透明度を下げる */
+            text-shadow:
+                0 0 12px #ff0,
+                0 0 24px #f80;
+            letter-spacing: 0.12em;
+            animation: feverIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes feverIn {
+            from {
+                transform: scale(0.4) rotate(-8deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* フィーバー前カウントダウン数字（5→…→1） */
+        #feverCountdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 2;
+            /* 風船（z-index:5）の後ろ、背景の前 */
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.55);
+            text-shadow: 0 0 20px #f80, 0 0 50px #ff0;
+            line-height: 1;
+            text-align: center;
+        }
+
+        #feverCountdown .cd-label {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            letter-spacing: 0.2em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #feverCountdown .cd-number {
+            font-size: clamp(6rem, 20vw, 12rem);
+            display: block;
+            animation: countPop 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes countPop {
+            from {
+                transform: scale(1.8);
+                opacity: 0.4;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* フィーバー中の覙の点滅ロード（bodyに.feverクラスを付ける） */
+        body.fever::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            animation: feverFlash 0.5s linear infinite alternate;
+        }
+
+        @keyframes feverFlash {
+            0% {
+                background: rgba(255, 100, 0, 0.08);
+            }
+
+            33% {
+                background: rgba(255, 0, 150, 0.08);
+            }
+
+            66% {
+                background: rgba(0, 180, 255, 0.08);
+            }
+
+            100% {
+                background: rgba(255, 220, 0, 0.08);
+            }
+        }
+
+        /* ---------------------------------------------------
+           動的生成を避けるための共通アニメーションキーフレーム
+        --------------------------------------------------- */
+        @keyframes flashOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes sparkAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(var(--spark-scale-start, 1));
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =====================================================
+       ステータスバー（スコア＋残り時間）
+       ゲーム中に常に画面上部に表示される
+       ===================================================== -->
+    <div id="statusBar">
+        <div id="scoreBoard">SCORE &nbsp;<span id="scoreValue">00000</span> pts</div>
+        <div id="timerBoard">TIME &nbsp;<span id="timerValue">30</span>s</div>
+    </div>
+
+    <!-- =====================================================
+       タイトル画面（ゲーム開始前に表示）
+       ===================================================== -->
+    <div id="titleOverlay" class="overlay">
+        <style>
+            @keyframes titleShadowPulse {
+                from {
+                    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.15)) drop-shadow(0 0 12px rgba(100, 200, 255, 0.4));
+                }
+
+                to {
+                    filter: drop-shadow(4px 8px 16px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 32px rgba(100, 200, 255, 0.8));
+                }
+            }
+        </style>
+        <img src="images/title.jpg" alt="バルーンバースト！"
+            style="max-width: 98vw; max-height: 40vh; object-fit: contain; margin-bottom: 24px; animation: titleShadowPulse 1.4s ease-in-out infinite alternate; border-radius: 12px;">
+        <p style="font-size:1.1rem; color:#1a5f8a; margin-bottom:6px;">バルーンをタップして割ろう！</p>
+        <p style="font-size:0.85rem; color:#2e7fa8;">
+            ⚠️ 黒いバルーンは触らないで！&nbsp;<strong style="color:#c03030;">−20 pts</strong>ペナルティ<br>
+            ⭐ 金のバルーンはレア！&nbsp;<strong style="color:#9a7000;">+5 pts / +1秒</strong>ボーナス<br>
+            ☠️ 赤いバルーンは大外れ！&nbsp;<strong style="color:#cc0000;">−50 pts / -2秒</strong>の大ペナルティ
+        </p>
+        <button id="startBtn" class="game-btn orange">▶ START</button>
+    </div>
+
+    <!-- =====================================================
+       結果画面（タイムアップ後に表示）
+       最初は非表示（display:none）にしておく
+       ===================================================== -->
+    <div id="resultOverlay" class="overlay" style="display:none;">
+        <h1>TIME'S UP</h1>
+        <p style="letter-spacing:0.1em;">FINAL SCORE</p>
+        <div id="resultScore">0</div>
+        <p id="resultMsg">WELL DONE</p>
+        <button id="retryBtn" class="game-btn blue">↺ &nbsp;RETRY</button>
+    </div>
+
+    <script>
+        // =====================================================
+        // ① 定数・設定値
+        //    ゲームの挙動を変えたいときはここを書き換える
+        // =====================================================
+
+        // 通常の風船の色リスト（クレヨン風の温かみのある色）
+        const BALLOON_COLORS = [
+            '#FF4757', '#FF6B35', '#FFD700',
+            '#2ED573', '#1E90FF', '#A855F7',
+            '#FF69B4', '#00CEC9',
+        ];
+
+        const BALLOON_MIN_SIZE = 100;   // 風船の最小サイズ（px）
+        const BALLOON_MAX_SIZE = 160;   // 風船の最大サイズ（px）
+        const SPAWN_INTERVAL_MS = 350;   // 風船が出現する間隔（ミリ秒）
+        const BALLOON_SPEED_MIN = 2.8;   // 風船の上昇速度 最小
+        const BALLOON_SPEED_MAX = 5.0;   // 風船の上昇速度 最大
+        const SWAY_AMOUNT = 50;    // 左右の揺れ幅（px）
+        const SWAY_SPEED = 0.02;  // 揺れの速さ
+
+        // =====================================================
+        // ② 新機能①の定数
+        //    制限時間の秒数
+        // =====================================================
+        const GAME_DURATION_SEC = 30; // ゲームの制限時間（秒）
+
+        // =====================================================
+        // フィーバータイムの定数
+        //    残り時間が FEVER_START_SEC 秒になったら発動
+        // =====================================================
+        const FEVER_START_SEC = 10;   // フィーバー開始の残り秒数
+        const FEVER_INTERVAL_MS = 80;   // フィーバー中の生成間隔（ms）↓120→80で密度アップ
+        const FEVER_SCORE_MULT = 2;    // フィーバー中の通常風船スコア倍率
+        const FEVER_COUNTDOWN_SEC = 5;   // フィーバー前に表示するカウントダウン秒数
+        const FEVER_SPEED_MULT = 1.8;  // フィーバー中の風船上昇速度倍率
+
+        // =====================================================
+        // ③ 新機能③の定数
+        //    お邪魔キャラ（わるい風船）の出現確率とペナルティ
+        // =====================================================
+        const BAD_BALLOON_CHANCE = 0.2;  // 20%の確率でわるい風船になる
+        const BAD_BALLOON_PENALTY = 200;   // わるい風船を割ったときの減点
+
+        // =====================================================
+        // ③'' 大外れ超バッド風船の定数
+        //    レア風船よりさらに少ない出現機率で大幅減点
+        // =====================================================
+        const SUPER_BAD_CHANCE = 0.04;  // 4%の確率で出る（金風船の8%より少ない）
+        const SUPER_BAD_PENALTY = 500;   // 割ると -500点の大幅ペナルティ
+
+        // =====================================================
+        // ③' 特別な高得点風船の定数
+        //    レア風船：出現確率は低めだがたくさん点が入る
+        // =====================================================
+        const SPECIAL_BALLOON_CHANCE = 0.08; // 8%の確率でレア風船が出る
+        const SPECIAL_BALLOON_POINTS = 100;  // レア風船を割ったときの加点（+100pts）
+
+        // =====================================================
+        // ③'' 激レア大逆転アイテムの定数
+        //    フィーバー中のみ極低確率(0.1%)で出現する超高得点アイテム
+        // =====================================================
+        const SUPER_RARE_CHANCE = 0.001;     // フィーバー中のみ 0.1%の確率で出現
+        const SUPER_RARE_POINTS = 3000;     // 大逆転用の超高得点（+3000pts）
+
+        // =====================================================
+        // ④ グローバル変数
+        // =====================================================
+        let score = 0;
+        let balloons = [];
+        let spawnTimer = null;
+        let countdownTimer = null;
+        let animationId = null;
+        let timeLeft = GAME_DURATION_SEC;
+        let gameRunning = false;
+        let frame = 0;
+        let feverActive = false;  // フィーバータイム中かどうか
+        let superRareSpawned = false; // 大逆転アイテムがこのゲームで出現したか
+        let feverTimeElapsed = 0;     // フィーバータイムが始まってからの経過秒数（確率上昇用）
+
+        // =====================================================
+        // ⑤ Web Audio API のセットアップ
+        //    音声ファイル不要でブラウザだけで音を鳴らす
+        // =====================================================
+        let audioCtx = null;
+
+        /** AudioContextを初期化する（ユーザー操作後に呼ぶ必要がある） */
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        /**
+         * 「ポン！」という通常の破裂音を鳴らす
+         * ホワイトノイズを短く鳴らすことで破裂音を表現する
+         */
+        function playPopSound() {
+            if (!audioCtx) return;
+
+            const bufferSize = audioCtx.sampleRate * 0.08;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1; // ランダムノイズ
+            }
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            source.start();
+            source.stop(audioCtx.currentTime + 0.1);
+        }
+
+        /**
+         * =====================================================
+         * 新機能③ わるい風船を割ったときのブザー音
+         * =====================================================
+         * 低い「ブ〜！」という音を鳴らすことでペナルティを表現する
+         * OscillatorNode（波形発生器）を使って音程のある音を作る
+         */
+        function playBuzzerSound() {
+            if (!audioCtx) return;
+
+            // OscillatorNode：指定した周波数の波を生成するノード
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'sawtooth'; // ノコギリ波：ざらざらした音になる
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime); // 低い音（Hz）
+            // 時間とともに音を少し下げてブザーっぽくする
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.3);
+
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.35);
+        }
+
+        /**
+         * =====================================================
+         * 大外れバッド風船を割ったときのアラーム音
+         * =====================================================
+         * 通常ブザーより長く・大きく鳴って「やばい！」感を強調
+         */
+        function playSuperBadAlarm() {
+            if (!audioCtx) return;
+            // 下陸する霧で「ウォウウウ···」なアラーム音
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, t);
+            osc.frequency.linearRampToValueAtTime(80, t + 0.2);
+            osc.frequency.linearRampToValueAtTime(220, t + 0.4);
+            osc.frequency.linearRampToValueAtTime(80, t + 0.6);
+            gain.gain.setValueAtTime(0.7, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.7);
+        }
+
+        /**
+         * =====================================================
+         * レア風船を割ったときのファンファーレ音
+         * =====================================================
+         * ド・ミ・ソと音程が上がるメロディを鳴らして
+         * 「当たった！」という達成感を表現する
+         */
+        function playFanfareSound() {
+            if (!audioCtx) return;
+
+            // 鳴らす音の周波数と開始タイミングを配列で定義する
+            // ド(523Hz)→ミ(659Hz)→ソ(784Hz) の3音を素早く鳴らす
+            const notes = [
+                { freq: 523, time: 0.00 },  // ド
+                { freq: 659, time: 0.12 },  // ミ
+                { freq: 784, time: 0.24 },  // ソ
+            ];
+
+            notes.forEach(({ freq, time }) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine'; // サイン波：まろやかで明るい音
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
+
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + time);
+                gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + time + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.2);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + time);
+                osc.stop(audioCtx.currentTime + time + 0.25);
+            });
+        }
+
+        /**
+         * =====================================================
+         * 激レアーオブジェクトを割ったときの大歓声音
+         * =====================================================
+         * キラキラした音色を派手に鳴らす
+         */
+        function playSuperRareSound() {
+            if (!audioCtx) return;
+            // 素早いアルペジオ（和音の分散）で派手さを演出
+            const notes = [
+                { freq: 523, time: 0.0 },   // C5
+                { freq: 659, time: 0.05 },  // E5
+                { freq: 784, time: 0.1 },   // G5
+                { freq: 1047, time: 0.15 }, // C6
+                { freq: 1319, time: 0.2 },  // E6
+                { freq: 1568, time: 0.25 }, // G6
+                { freq: 2093, time: 0.3 }   // C7
+            ];
+
+            notes.forEach(({ freq, time }) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'triangle'; // トライアングル波：電子音的なクリアさ
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
+
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + time);
+                gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + time + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.3);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + time);
+                osc.stop(audioCtx.currentTime + time + 0.35);
+            });
+
+            // 下地のホワイトノイズ（歓声っぽい音）
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 1000;
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseSource.start();
+        }
+
+        // =====================================================
+        // ⑥ ユーティリティ関数
+        // =====================================================
+
+        /** 指定した範囲でランダムな数値を返す */
+        function randomBetween(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        /**
+         * 16進数カラーを明暗調整するヘルパー
+         * @param {string} hex    - 元の色（例：'#FF4757'）
+         * @param {number} amount - 正で明るく、負で暗く
+         */
+        function shadeColor(hex, amount) {
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+            r = Math.max(0, Math.min(255, r + amount));
+            g = Math.max(0, Math.min(255, g + amount));
+            b = Math.max(0, Math.min(255, b + amount));
+            return `rgb(${r},${g},${b})`;
+        }
+
+        // =====================================================
+        // ⑦ 風船 SVG の生成
+        // =====================================================
+
+        /**
+         * 通常の風船の SVG 文字列を返す
+         * クレヨン風の手書きっぽいデザイン
+         */
+        function createBalloonSVG(color, size) {
+            const w = size;
+            const h = size * 1.25;
+            const shadowColor = shadeColor(color, -30);
+            return `
+        <svg width="${w}" height="${h}" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="52" cy="72" rx="36" ry="32" fill="${shadowColor}" opacity="0.3"/>
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="${color}" stroke="${shadowColor}"
+            stroke-width="2" stroke-linejoin="round"/>
+          <ellipse cx="38" cy="34" rx="10" ry="14"
+            fill="white" opacity="0.4" transform="rotate(-20 38 34)"/>
+          <polygon points="50,95 44,104 56,104" fill="${shadowColor}" opacity="0.8"/>
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="none" stroke="${shadowColor}"
+            stroke-width="2.5" stroke-dasharray="4,1" opacity="0.5"/>
+        </svg>`;
+        }
+
+        /**
+         * =====================================================
+         * 新機能③ わるい風船の SVG 文字列を返す
+         * =====================================================
+         * 暗紫色〜黒みがかったデザインに、ガイコツマークや
+         * ギザギザのアウトラインで「わるもの感」を表現する
+         */
+        function createBadBalloonSVG(size) {
+            const w = size;
+            const h = size * 1.25;
+            return `
+        <svg width="${w}" height="${h}" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg">
+          <!-- お邪魔風船の影：暗めの紫 -->
+          <ellipse cx="52" cy="72" rx="36" ry="32" fill="#1a0030" opacity="0.4"/>
+
+          <!-- お邪魔風船の本体：ダーク紫 -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="#3d0070" stroke="#1a0030"
+            stroke-width="2.5" stroke-linejoin="round"/>
+
+          <!-- 毒っぽい光沢（緑がかった白） -->
+          <ellipse cx="38" cy="34" rx="9" ry="12"
+            fill="#b0ff80" opacity="0.25" transform="rotate(-20 38 34)"/>
+
+          <!-- ガイコツ風の目（左） -->
+          <circle cx="40" cy="48" r="6" fill="#1a0030" opacity="0.85"/>
+          <circle cx="40" cy="48" r="3" fill="#ff4444" opacity="0.9"/>
+
+          <!-- ガイコツ風の目（右） -->
+          <circle cx="60" cy="48" r="6" fill="#1a0030" opacity="0.85"/>
+          <circle cx="60" cy="48" r="3" fill="#ff4444" opacity="0.9"/>
+
+          <!-- ニヤリとした口 -->
+          <path d="M 36 62 Q 50 75 64 62"
+            fill="none" stroke="#1a0030" stroke-width="3"
+            stroke-linecap="round" opacity="0.9"/>
+
+          <!-- 口の中の牙（こわい感じ） -->
+          <polygon points="43,63 46,71 49,63" fill="white" opacity="0.7"/>
+          <polygon points="51,63 54,71 57,63" fill="white" opacity="0.7"/>
+
+          <!-- 風船の口 -->
+          <polygon points="50,95 44,104 56,104" fill="#1a0030" opacity="0.8"/>
+
+          <!-- ギザギザのアウトライン（わるもの感） -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="none" stroke="#9b00ff"
+            stroke-width="2" stroke-dasharray="6,3" opacity="0.6"/>
+        </svg>`;
+        }
+
+        /**
+         * =====================================================
+         * 特別な高得点風船（レア風船）の SVG を返す
+         * =====================================================
+         * ゴールド＋星マークで「当たり！」感を表現する
+         * キラキラしたデザインにして一目で分かるようにする
+         */
+        function createSpecialBalloonSVG(size) {
+            const w = size;
+            const h = size * 1.25;
+            return `
+        <svg width="${w}" height="${h}" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg">
+          <!-- レア風船の影：ゴールド系 -->
+          <ellipse cx="52" cy="72" rx="36" ry="32" fill="#b8860b" opacity="0.35"/>
+
+          <!-- 本体：鮮やかなゴールドグラデーション風（SVGはグラデ定義が必要） -->
+          <defs>
+            <radialGradient id="goldGrad" cx="40%" cy="35%" r="60%">
+              <stop offset="0%"   stop-color="#fffbe6"/>
+              <stop offset="50%"  stop-color="#ffd700"/>
+              <stop offset="100%" stop-color="#b8860b"/>
+            </radialGradient>
+          </defs>
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="url(#goldGrad)" stroke="#b8860b"
+            stroke-width="2.5" stroke-linejoin="round"/>
+
+          <!-- 中央に光る星マーク -->
+          <!-- SVGのpathで5角星を描く -->
+          <polygon
+            points="50,22 54,36 68,36 57,45 61,59 50,50 39,59 43,45 32,36 46,36"
+            fill="white" opacity="0.9"/>
+
+          <!-- 星の輝き（小さい4角星を散らす） -->
+          <polygon points="22,20 24,26 30,26 25,30 27,36 22,32 17,36 19,30 14,26 20,26"
+            fill="#fff" opacity="0.6" transform="scale(0.55) translate(18,10)"/>
+          <polygon points="22,20 24,26 30,26 25,30 27,36 22,32 17,36 19,30 14,26 20,26"
+            fill="#fff" opacity="0.5" transform="scale(0.45) translate(130,30)"/>
+
+          <!-- 風船の口 -->
+          <polygon points="50,95 44,104 56,104" fill="#b8860b" opacity="0.9"/>
+
+          <!-- キラキラのアウトライン -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="none" stroke="#fff"
+            stroke-width="1.5" stroke-dasharray="3,4" opacity="0.7"/>
+        </svg>`;
+        }
+
+        /**
+         * =====================================================
+         * 大外れバッド風船の SVG
+         * =====================================================
+         * 鮮血色✕オレンジのハザードストライプ + ガイコツマークで
+         * 「これは小灋じゃない！」と直感で分かるデザイン
+         */
+        /**
+         * 大外れバッド風船の SVG — ウィルスデザイン
+         * 球体に放射状のスパイクタンパク質を取り巧け
+         * CSS アニメーションでクルクル回転する
+         */
+        function createSuperBadBalloonSVG(size) {
+            const w = size;
+            const h = size * 1.25;
+            return `
+        <svg width="${w}" height="${h}" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="superBadGrad" cx="40%" cy="35%" r="65%">
+              <stop offset="0%"   stop-color="#ffcc00"/>
+              <stop offset="40%"  stop-color="#ff4400"/>
+              <stop offset="100%" stop-color="#880000"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 本体影 -->
+          <ellipse cx="52" cy="72" rx="36" ry="32" fill="#440000" opacity="0.4"/>
+          <!-- 本体：赤オレンジの大外れ風船 -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="url(#superBadGrad)" stroke="#440000"
+            stroke-width="2.5"/>
+
+          <!-- ハザードストライプ -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="none" stroke="#000"
+            stroke-width="6" stroke-dasharray="9,9" opacity="0.35"/>
+
+          <!-- 目：ガイコツ X -->
+          <line x1="36" y1="43" x2="44" y2="51" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="44" y1="43" x2="36" y2="51" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="56" y1="43" x2="64" y2="51" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="64" y1="43" x2="56" y2="51" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+
+          <!-- 口 -->
+          <path d="M 34 63 Q 50 72 66 63"
+            fill="none" stroke="white" stroke-width="3"
+            stroke-linecap="round" opacity="0.9"/>
+
+          <!-- 歯 -->
+          <polygon points="43,64 46,72 49,64" fill="white" opacity="0.85"/>
+          <polygon points="51,64 54,72 57,64" fill="white" opacity="0.85"/>
+
+          <!-- 風船の口 -->
+          <polygon points="50,95 44,104 56,104" fill="#440000" opacity="0.9"/>
+
+          <!-- 警告色アウトライン -->
+          <ellipse cx="50" cy="52" rx="35" ry="45"
+            fill="none" stroke="#ffcc00"
+            stroke-width="2" stroke-dasharray="5,3" opacity="0.8"/>
+        </svg>`;
+        }
+
+        /**
+         * =====================================================
+         * 激レア大逆転アイテムの SVG
+         * =====================================================
+         * ユーザーから提供された写真を使用します。
+         */
+        function createSuperRareSVG(size) {
+            const w = size;
+            const h = size * 1.25;
+            return `
+        <svg width="${w}" height="${h}" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg">
+          <!-- 影 -->
+          <ellipse cx="50" cy="115" rx="30" ry="8" fill="#000" opacity="0.3"/>
+
+          <!-- 写真を丸く切り抜くためのクリップパス -->
+          <defs>
+            <clipPath id="circleClip">
+              <circle cx="50" cy="50" r="48" />
+            </clipPath>
+          </defs>
+          
+          <!-- 写真 -->
+          <image href="images/super_rare_face.jpg" x="2" y="2" width="96" height="96" 
+            clip-path="url(#circleClip)" preserveAspectRatio="xMidYMid slice" />
+
+          <!-- 枠線（シンプル） -->
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#FFD700" stroke-width="2" />
+
+          <!-- 紐 -->
+          <line x1="50" y1="98" x2="50" y2="120" stroke="#555" stroke-width="2"/>
+        </svg>`;
+        }
+
+        // =====================================================
+        // ⑧ 風船の生成
+        //    一定間隔で呼ばれ、通常 / わるい / レア風船をランダムに出す
+        // =====================================================
+
+        /**
+         * 風船を1つ生成して画面に追加する
+         * 乱数の範囲で3種類に振り分ける：
+         *   0.00 〜 0.08 → レア風船（8%）
+         *   0.08 〜 0.28 → わるい風船（20%）
+         *   0.28 〜 1.00 → 通常風船（72%）
+         */
+        function spawnBalloon() {
+            // ---- 風船の種類を乱数で決める ----
+            const roll = Math.random(); // 0〜1 の乱数を1回だけ引く
+
+            // フィーバー前カウントダウン中（timeLeftが10〜15秒の間）かどうか判定
+            const cdSec = FEVER_START_SEC + FEVER_COUNTDOWN_SEC; // 15
+            const isCountdown = typeof feverActive !== 'undefined' && !feverActive && typeof timeLeft !== 'undefined' && timeLeft <= cdSec && timeLeft > FEVER_START_SEC;
+
+            let isSuperBad = false;
+            let isSpecial = false;
+            let isBad = false;
+            let isSuperRare = false;
+
+            // フィーバー中で、かつこのゲームでまだ1回も出現していない場合
+            // フィーバー継続時間が長いほど、ほんの少しずつ出現確率(0.02%/秒)がプラスされる
+            if (feverActive && !superRareSpawned && typeof SUPER_RARE_CHANCE !== 'undefined') {
+                const currentChance = SUPER_RARE_CHANCE + (feverTimeElapsed * 0.0002);
+                if (roll < currentChance) {
+                    isSuperRare = true;
+                    superRareSpawned = true; // 出現済みにする
+                }
+            }
+
+            // スーパーレアじゃない場合のみ通常の判定を行う
+            if (!isSuperRare) {
+                // カウントダウン中以外は通常通り判定
+                if (!isCountdown) {
+                    // スーパーレアの確率は非常に小さいため、乱数の閾値を調整しなくてもほぼ影響なし
+                    isSuperBad = roll < SUPER_BAD_CHANCE;                                                  // 大外れ 4%
+                    isSpecial = !isSuperBad && roll < SUPER_BAD_CHANCE + SPECIAL_BALLOON_CHANCE;          // レア金 8%
+                    isBad = !isSuperBad && !isSpecial &&
+                        roll < SUPER_BAD_CHANCE + SPECIAL_BALLOON_CHANCE + BAD_BALLOON_CHANCE;    // わるい 20%
+                } else {
+                    // カウントダウン中は、大外れ・レアは出ず、代わりに「わるい風船」か「通常風船」になる
+                    isBad = roll < BAD_BALLOON_CHANCE;
+                }
+            }
+
+            // ---- 風船パラメータをランダムに決める ----
+            // スマホ対応：画面幅の 1/4 〜 1/3 程度に収まるように動的に計算。PC向けに上限は既存サイズを適用。
+            const dynamicMin = window.innerWidth * 0.25;
+            const dynamicMax = window.innerWidth * 0.33;
+            const rMin = Math.min(BALLOON_MIN_SIZE, dynamicMin);
+            const rMax = Math.min(BALLOON_MAX_SIZE, dynamicMax);
+
+            // 極端に小さくなりすぎないよう下限も設定 (例: 50px)
+            const finalMin = Math.max(50, rMin);
+            const finalMax = Math.max(50, Math.max(finalMin, rMax));
+
+            let size = randomBetween(finalMin, finalMax);
+
+            // 激レアアイテムのサイズをさらに小さめにする（元の約40%のサイズ）
+            if (isSuperRare) {
+                size *= 0.4;
+            }
+
+            // 揺れ幅 (SWAY_AMOUNT) を考慮して、画面の端から確実にはみ出ないように発生X座標を制限する
+            const margin = (size / 2) + SWAY_AMOUNT;
+            // 画面幅が極端に狭い場合のフェールセーフ
+            const safeMargin = Math.min(margin, window.innerWidth / 3);
+            const x = randomBetween(safeMargin, window.innerWidth - safeMargin);
+
+            const y = window.innerHeight + size + 60;
+            const speed = randomBetween(BALLOON_SPEED_MIN, BALLOON_SPEED_MAX)
+                * (feverActive ? FEVER_SPEED_MULT : 1); // フィーバー中は高速化
+            const swayOffset = Math.random() * Math.PI * 2;
+
+            // ---- DOM 要素を作る ----
+            const el = document.createElement('div');
+            // 種類に応じてクラスを付ける（CSSで見た目を変えるため）
+            if (isSuperRare) {
+                el.className = 'balloon super-rare';
+            } else if (isSuperBad) {
+                el.className = 'balloon super-bad';
+            } else if (isSpecial) {
+                el.className = 'balloon special';
+            } else if (isBad) {
+                el.className = 'balloon bad';
+            } else {
+                el.className = 'balloon';
+            }
+            el.style.width = size + 'px';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            // SVG を種類に応じて切り替える
+            if (isSuperRare) {
+                el.innerHTML = createSuperRareSVG(size);
+            } else if (isSuperBad) {
+                el.innerHTML = createSuperBadBalloonSVG(size);
+            } else if (isSpecial) {
+                el.innerHTML = createSpecialBalloonSVG(size);
+            } else if (isBad) {
+                el.innerHTML = createBadBalloonSVG(size);
+            } else {
+                const color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+                el.innerHTML = createBalloonSVG(color, size);
+            }
+
+            // 紐を追加
+            const string = document.createElement('div');
+            string.className = 'string';
+            el.appendChild(string);
+
+            // ---- クリック（タップ）イベント ----
+            el.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); // ←★追加：ブラウザの余計な挙動（ズーム等）を完全に禁止！
+                e.stopPropagation();
+                // 種類フラグを渡して、それぞれの処理を分ける
+                popBalloon(balloonData, el, e.clientX, e.clientY, isBad, isSpecial, isSuperBad, isSuperRare);
+            });
+
+            // ---- 風船データオブジェクト ----
+            const balloonData = {
+                el, x, y, size, speed, swayOffset,
+                isBad,      // お邪魔キャラかどうか
+                isSpecial,  // レア高得点風船かどうか
+                isSuperBad, // 大外れバッド風船かどうか
+                isSuperRare, // 激レア大逆転アイテムかどうか
+                popped: false
+            };
+
+            balloons.push(balloonData);
+            document.body.appendChild(el);
+        }
+
+        // =====================================================
+        // ⑨ アニメーションループ（毎フレーム実行）
+        // =====================================================
+
+        /** すべての風船を毎フレーム動かす */
+        function gameLoop() {
+            frame++;
+            const liveBalloons = [];
+
+            for (const b of balloons) {
+                if (b.popped) continue;
+
+                // 上に移動
+                b.y -= b.speed;
+
+                // 左右にふわふわ揺らす（サイン波）
+                const sway = Math.sin(frame * SWAY_SPEED + b.swayOffset) * SWAY_AMOUNT;
+                b.el.style.top = b.y + 'px';
+                b.el.style.left = (b.x + sway) + 'px';
+
+                // 画面上端を超えたら削除
+                if (b.y < -(b.size + 80)) {
+                    b.el.remove();
+                } else {
+                    liveBalloons.push(b);
+                }
+            }
+
+            balloons = liveBalloons;
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // =====================================================
+        // ⑩ 風船を割る処理
+        // =====================================================
+
+        /**
+         * 風船がクリックされたときの処理
+         * @param {object}  balloonData - 風船のデータ
+         * @param {HTMLElement} el      - 風船の DOM 要素
+         * @param {number}  cx, cy      - クリック座標
+         * @param {boolean} isBad       - お邪魔風船かどうか
+         */
+        function popBalloon(balloonData, el, cx, cy, isBad, isSpecial, isSuperBad, isSuperRare) {
+            if (balloonData.popped) return;
+            balloonData.popped = true;
+            el.remove();
+
+            if (isSuperRare) {
+                // =====================================================
+                // 激レアアイテムを割ったときの処理（目立たないように変更）
+                // =====================================================
+                playFanfareSound();
+
+                // 新しいシュールな演出：提供された画像が加工されずにそのまま出てきて、スススーっと消えていく
+                const surrealImg = document.createElement('img');
+                surrealImg.src = 'images/super_rare_pop.jpg';
+                surrealImg.className = 'surreal-pop';
+                surrealImg.style.left = cx + 'px';
+                surrealImg.style.top = cy + 'px';
+
+                // 画像を元の風船（紐を含む）程度のサイズに縮小
+                const h = balloonData.size * 1.25;
+                surrealImg.style.height = h + 'px';
+                surrealImg.style.width = 'auto'; // アスペクト比を維持
+
+                document.body.appendChild(surrealImg);
+                setTimeout(() => surrealImg.remove(), 2000); // 2秒後に削除する
+
+                // 超高得点を加算（+3000pts）※特別な巨大エフェクトは無効化（第6引数=false）してレア金風船扱いの表示にする
+                addScore(SUPER_RARE_POINTS, cx, cy, false, true, false);
+
+            } else if (isSuperBad) {
+                // =====================================================
+                // 大外れバッド風船を割ったときの処理
+                // =====================================================
+
+                // 長めのアラーム音を鳴らす
+                playSuperBadAlarm();
+
+                // 画面を二度赤フラッシュ（ペナルティの大きさを強調）
+                showRedFlash();
+                setTimeout(() => showRedFlash(), 180);
+
+                // 「DANGER!」テキスト
+                const superBadText = document.createElement('div');
+                superBadText.className = 'float-label bad-text';
+                superBadText.textContent = '☠️ DANGER!';
+                superBadText.style.cssText = `left:${cx - 55}px; top:${cy - 55}px;
+                    font-size:2rem; color:#ff2200;`;
+                document.body.appendChild(superBadText);
+                setTimeout(() => superBadText.remove(), 1000);
+
+                // スコアを大幅減点（-50点）
+                addScore(-SUPER_BAD_PENALTY, cx, cy, true);
+
+                // == 新機能: 大外れ風船は-2秒（バランス用リスク） ==
+                // 理由：レアは出現率8%で+1秒、大外れは出現率4%で-2秒。
+                // 期待値はプラマイゼロになるため、プレイヤーの腕次第でタイムアウトするか生き残るかが決まる。
+                timeLeft -= 2;
+                if (timeLeft < 0) timeLeft = 0; // 0秒未満にはならない
+                document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
+
+                // 時間減少のポップアップ表示
+                const timeEl = document.createElement('div');
+                timeEl.className = 'float-label time-sub';
+                timeEl.textContent = '-2秒';
+                timeEl.style.left = (cx + 25) + 'px';
+                timeEl.style.top = (cy - 20) + 'px';
+                document.body.appendChild(timeEl);
+                setTimeout(() => timeEl.remove(), 1000);
+
+                // もし時間が一気に5秒以下になったら警告(danger)を付ける
+                if (timeLeft <= 5) {
+                    document.getElementById('timerBoard').classList.add('danger');
+                }
+
+                if (timeLeft === 0) {
+                    endGame(); // ペナルティで0秒になったら即終了
+                }
+
+            } else if (isSpecial) {
+                // =====================================================
+                // レア高得点風船を割ったときの処理
+                // =====================================================
+                playFanfareSound();
+                showGoldFlash();
+                const specialText = document.createElement('div');
+                specialText.className = 'float-label special-text';
+                specialText.textContent = '⭐ やったー！';
+                specialText.style.left = (cx - 55) + 'px';
+                specialText.style.top = (cy - 50) + 'px';
+                document.body.appendChild(specialText);
+                setTimeout(() => specialText.remove(), 1000);
+                showSpecialPopEffect(cx, cy, balloonData.size);
+                addScore(SPECIAL_BALLOON_POINTS, cx, cy, false, true);
+
+                // == 新機能: レア風船は+1秒（絶妙なバランス調整） ==
+                // 理由：フィーバー中は毎秒約1匹のレアが出現。完璧なプレイヤーなら無限に遊べるが、
+                // 実際はスマホで少し見逃すため、+1秒なら徐々に減り、白熱した約50秒間の延長フィーバーになる。
+                timeLeft += 1; // 1秒延長
+                document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
+
+                // 時間延長のポップアップ表示
+                const timeEl = document.createElement('div');
+                timeEl.className = 'float-label time-add';
+                timeEl.textContent = '+1秒';
+                timeEl.style.left = (cx + 25) + 'px'; // スコア表示と少し横にずらす
+                timeEl.style.top = (cy - 20) + 'px'; // 少し下に表示して被りを回避
+                document.body.appendChild(timeEl);
+                setTimeout(() => timeEl.remove(), 1000);
+
+                // もし時間が5秒を超えたら警告(danger)を外す
+                if (timeLeft > 5) {
+                    document.getElementById('timerBoard').classList.remove('danger');
+                }
+
+            } else if (isBad) {
+                // =====================================================
+                // お邪魔風船（わるい風船）を割ってしまった場合
+                // =====================================================
+                playBuzzerSound();
+                showRedFlash();
+                const badText = document.createElement('div');
+                badText.className = 'float-label bad-text';
+                badText.textContent = '💀 ダメ！';
+                badText.style.left = (cx - 40) + 'px';
+                badText.style.top = (cy - 40) + 'px';
+                document.body.appendChild(badText);
+                setTimeout(() => badText.remove(), 900);
+                addScore(-BAD_BALLOON_PENALTY, cx, cy, true);
+
+            } else {
+                // 通常の風船の場合
+                playPopSound();
+                showPopEffect(cx, cy, balloonData.size);
+                // フィーバー中は通常風船のスコアを FEVER_SCORE_MULT 倍にする
+                const normalPts = 50 * (feverActive ? FEVER_SCORE_MULT : 1);
+                addScore(normalPts, cx, cy, false);
+            }
+        }
+
+        /**
+         * 画面を一瞬赤くして、ペナルティを視覚で伝える
+         * わるい風船を割ったときのフラッシュ演出
+         */
+        function showRedFlash() {
+            // 赤い半透明の div を全体に重ねる
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+        position: fixed; inset: 0; z-index: 150;
+        background: rgba(220, 0, 0, 0.3);
+        pointer-events: none;
+        animation: flashOut 0.4s ease-out forwards;
+      `;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 400);
+        }
+
+        /**
+         * =====================================================
+         * レア風船を割ったときのゴールドフラッシュ演出
+         * =====================================================
+         * 画面を一瞬きらきら金色にして「当たり！」感を高める
+         */
+        function showGoldFlash() {
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed; inset: 0; z-index: 150;
+                background: rgba(255, 215, 0, 0.35);
+                pointer-events: none;
+                animation: flashOut 0.5s ease-out forwards;
+            `;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        /**
+         * =====================================================
+         * 激レア大逆転アイテムを割ったときのグリーンフラッシュ演出
+         * =====================================================
+         */
+        function showGreenFlash() {
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed; inset: 0; z-index: 150;
+                background: rgba(0, 255, 0, 0.4);
+                mix-blend-mode: screen;
+                pointer-events: none;
+                animation: flashOut 0.8s ease-out forwards;
+            `;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 800);
+        }
+
+        /**
+         * =====================================================
+         * 激レアアイテムの派手な破裂エフェクト
+         * =====================================================
+         */
+        function showSuperRarePopEffect(x, y, size) {
+            const pop = document.createElement('div');
+            pop.className = 'pop-effect';
+            pop.style.left = (x - size / 2) + 'px';
+            pop.style.top = (y - size / 2) + 'px';
+            pop.style.width = size + 'px';
+            pop.style.height = size + 'px';
+
+            const colors = ['#00FF00', '#80FF80', '#FFFFFF', '#00CC00', '#00FFCC'];
+            const sparkCount = 12; // さらに多く
+
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                const angle = (i / sparkCount) * Math.PI * 2 + (Math.random() * 0.5);
+                const dist = size * 1.5;
+                const sparkColor = colors[i % colors.length];
+                const sparkSize = (i % 3 === 0) ? 16 : 8;
+
+                spark.style.cssText = `
+                    position:absolute; width:${sparkSize}px; height:${sparkSize}px;
+                    background:${sparkColor}; 
+                    border-radius: ${i % 2 === 0 ? '50%' : '0'}; /* 四角い破片も混ぜる */
+                    left:50%; top:50%;
+                    --tx: ${Math.cos(angle) * dist}px;
+                    --ty: ${Math.sin(angle) * dist}px;
+                    --spark-scale-start: 1.5;
+                    transform:translate(-50%,-50%) rotate(${Math.random() * 360}deg);
+                    box-shadow: 0 0 10px ${sparkColor};
+                    animation:sparkAnim 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                `;
+                pop.appendChild(spark);
+            }
+            document.body.appendChild(pop);
+            setTimeout(() => pop.remove(), 1000);
+        }
+
+        /**
+         * =====================================================
+         * レア風船の豪華な金色破裂エフェクト
+         * =====================================================
+         * 通常より多くの金色の星を飛び散らせる
+         */
+        function showSpecialPopEffect(x, y, size) {
+            const pop = document.createElement('div');
+            pop.className = 'pop-effect';
+            pop.style.left = (x - size / 2) + 'px';
+            pop.style.top = (y - size / 2) + 'px';
+            pop.style.width = size + 'px';
+            pop.style.height = size + 'px';
+
+            // 金・白・オレンジ中心の豪華なカラーパレット
+            const colors = ['#FFD700', '#FFF176', '#FFAB00', '#FFFFFF', '#FFD700', '#FFF9C4'];
+            const sparkCount = 6; // スパーク数を減らして動的 @keyframes の生成コストを抑える
+
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                const angle = (i / sparkCount) * Math.PI * 2;
+                const dist = size * 1.2; // 通常より遠くまで飛ぶ
+                const sparkColor = colors[i % colors.length];
+                // 星形に見えるよう、大きさを交互に変える
+                const sparkSize = i % 2 === 0 ? 12 : 7;
+                spark.style.cssText = `
+                    position:absolute; width:${sparkSize}px; height:${sparkSize}px;
+                    background:${sparkColor}; border-radius:50%;
+                    left:50%; top:50%;
+                    --tx: ${Math.cos(angle) * dist}px;
+                    --ty: ${Math.sin(angle) * dist}px;
+                    --spark-scale-start: 1.2;
+                    transform:translate(-50%,-50%);
+                    box-shadow: 0 0 6px ${sparkColor};
+                    animation:sparkAnim 0.7s ease-out forwards;
+                `;
+                pop.appendChild(spark);
+            }
+            document.body.appendChild(pop);
+            setTimeout(() => pop.remove(), 800);
+        }
+
+        /**
+         * 破裂エフェクト（星が飛び散る）と「ポン！」テキストを表示する
+         */
+        function showPopEffect(x, y, size) {
+            const pop = document.createElement('div');
+            pop.className = 'pop-effect';
+            pop.style.left = (x - size / 2) + 'px';
+            pop.style.top = (y - size / 2) + 'px';
+            pop.style.width = size + 'px';
+            pop.style.height = size + 'px';
+
+            const colors = ['#FFD700', '#FF4757', '#2ED573', '#1E90FF', '#FF6B35', '#A855F7'];
+            const sparkCount = 8;
+
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                const angle = (i / sparkCount) * Math.PI * 2;
+                const dist = size * 0.8;
+                const sparkColor = colors[i % colors.length];
+                spark.style.cssText = `
+          position:absolute; width:10px; height:10px;
+          background:${sparkColor}; border-radius:50%;
+          left:50%; top:50%;
+          --tx: ${Math.cos(angle) * dist}px;
+          --ty: ${Math.sin(angle) * dist}px;
+          --spark-scale-start: 1;
+          transform:translate(-50%,-50%);
+          animation:sparkAnim 0.5s ease-out forwards;
+        `;
+                pop.appendChild(spark);
+            }
+            document.body.appendChild(pop);
+
+            const text = document.createElement('div');
+            text.className = 'float-label pop-text';
+            text.textContent = 'ポン！';
+            text.style.left = (x - 30) + 'px';
+            text.style.top = (y - 40) + 'px';
+            document.body.appendChild(text);
+
+            setTimeout(() => { pop.remove(); text.remove(); }, 700);
+        }
+
+        // =====================================================
+        // ⑪ スコアの加算・減算と表示
+        // =====================================================
+
+        /**
+         * スコアを変更して表示を更新する
+         * @param {number}  points    - 変化量（プラスで加点、マイナスで減点）
+         * @param {number}  x, y      - 数字が浮かぶ位置
+         * @param {boolean} isBad     - 減点の場合は true
+         * @param {boolean} isSpecial - レア風船の場合は true（金色表示）
+         * @param {boolean} isSuperRare - 激レアアイテムの場合は true（緑色巨大表示）
+         */
+        function addScore(points, x, y, isBad, isSpecial, isSuperRare = false) {
+            score += points;
+            // スコアを5桁（例：00150）にゼロ埋めする処理。マイナスの場合は符号を含めて桁数を調整
+            const displayScore = score >= 0
+                ? String(score).padStart(5, '0')
+                : '-' + String(Math.abs(score)).padStart(4, '0');
+            document.getElementById('scoreValue').textContent = displayScore;
+
+            // 加点・減点・レアで見た目を変える
+            const el = document.createElement('div');
+            if (isSuperRare) {
+                el.className = 'float-label score-super-rare';
+            } else if (isSpecial) {
+                el.className = 'float-label score-special';
+            } else if (isBad) {
+                el.className = 'float-label score-sub';
+            } else {
+                el.className = 'float-label score-add';
+            }
+            el.textContent = (points >= 0 ? '+' : '') + points;
+            el.style.left = (x - 20) + 'px';
+            el.style.top = (y - 10) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), (isSuperRare ? 1200 : 1000));
+        }
+
+        // =====================================================
+        // ⑫ 新機能① カウントダウンタイマー
+        // =====================================================
+
+        /**
+         * 1秒ごとに残り時間を減らし、表示を更新する
+         * 0になったらゲームを終了する
+         */
+        function startCountdown() {
+            timeLeft = GAME_DURATION_SEC;
+            feverActive = false;
+            document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
+            document.getElementById('timerBoard').classList.remove('danger');
+
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerValue').textContent = String(timeLeft).padStart(2, '0');
+
+                // (スマホでの負荷軽減のため、JSでの毎秒の背景色更新は廃止し、CSS transitionに任せる)
+
+                // フィーバー前カウントダウン表示領域: FEVER_START_SEC + FEVER_COUNTDOWN_SEC 秒 → FEVER_START_SEC+1 秒
+                const cdSec = FEVER_START_SEC + FEVER_COUNTDOWN_SEC; // = 15秒
+                if (timeLeft <= cdSec && timeLeft > FEVER_START_SEC && !feverActive) {
+                    const remaining = timeLeft - FEVER_START_SEC; // 5,4,3,2,1
+                    showFeverCountdown(remaining);
+                }
+
+                // フィーバー中なら経過時間を加算する（ボーナスアイテム確率上昇のため）
+                if (feverActive) {
+                    feverTimeElapsed++;
+                }
+
+                // 残り10秒でフィーバータイム開始
+                if (timeLeft === FEVER_START_SEC && !feverActive) {
+                    startFeverTime();
+                }
+
+                // 残り5秒以下でタイマー警告
+                if (timeLeft <= 5) {
+                    document.getElementById('timerBoard').classList.add('danger');
+                } else {
+                    document.getElementById('timerBoard').classList.remove('danger');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        /**
+         * フィーバー前のカウントダウン数字を画面中央に表示 / 更新する
+         * @param {number} n - 残りカウントダウン秒数（5→→1）
+         */
+        function showFeverCountdown(n) {
+            // 既存要素または新規作成
+            let cd = document.getElementById('feverCountdown');
+            if (!cd) {
+                cd = document.createElement('div');
+                cd.id = 'feverCountdown';
+                document.body.appendChild(cd);
+            }
+            // 数字を再規設することで countPop アニメーションを再生する
+            cd.innerHTML = `
+                <span class="cd-label">🔥 FEVER 🔥<br>⚡ COMING ⚡</span>
+                <span class="cd-number">${n}</span>
+            `;
+            // animationの再起動のために一度 display:none を挿む
+            const numEl = cd.querySelector('.cd-number');
+            numEl.style.animation = 'none';
+            void numEl.offsetWidth; // reflow
+            numEl.style.animation = 'countPop 0.25s cubic-bezier(0.22,1,0.36,1) both';
+        }
+
+        /**
+         * フィーバータイム開始：風船生成を急加速し、演出を添える
+         */
+        function startFeverTime() {
+            feverActive = true;
+            feverTimeElapsed = 0;
+
+            // カウントダウン要素を削除
+            const cdEl = document.getElementById('feverCountdown');
+            if (cdEl) cdEl.remove();
+
+            // スポッーン間隔を急加速
+            clearInterval(spawnTimer);
+            spawnTimer = setInterval(spawnBalloon, FEVER_INTERVAL_MS);
+
+            // bodyに.feverクラスを付けて色喫を開始
+            document.body.classList.add('fever');
+
+            // 背景色を夕暮れ〜夜空へCSSのtransitionで滑らかに変化させる（JSの毎秒描画から変更）
+            triggerFeverSky();
+
+
+            // 「🎉 FEVER TIME!」バナーを表示
+            const banner = document.createElement('div');
+            banner.id = 'feverBanner';
+            banner.innerHTML = '<div class="fever-text">🎉 FEVER TIME! 🎉</div>';
+            document.body.appendChild(banner);
+
+            // フィーバー音
+            playFeverJingle();
+
+            // 1.5秒後にバナーをフェードアウト
+            setTimeout(() => {
+                banner.style.transition = 'opacity 0.5s';
+                banner.style.opacity = '0';
+                setTimeout(() => banner.remove(), 500);
+            }, 1500);
+        }
+
+        /**
+         * フィーバー開始時の決定的なジングル音
+         * 上に向かうスチャカチッティな音列
+         */
+        /**
+         * フィーバー中に背景グラデーションを夕暮れ〜夜空へ変化させる（負荷軽減版）
+         */
+        function triggerFeverSky() {
+            // JSの毎秒描画（setInterval）ではなく、CSSのtransition機能で自然に変化させる
+            document.body.style.transition = `background-image ${FEVER_START_SEC}s linear`;
+            document.body.style.backgroundImage = `linear-gradient(to bottom,
+                rgb(30, 10, 60) 0%,
+                rgb(140, 40, 80) 45%,
+                rgb(220, 90, 40) 100%)`;
+        }
+
+
+
+        function playFeverJingle() {
+            if (!audioCtx) return;
+            const notes = [
+                { freq: 659, time: 0.00 },
+                { freq: 784, time: 0.10 },
+                { freq: 988, time: 0.20 },
+                { freq: 1319, time: 0.30 },
+            ];
+            notes.forEach(({ freq, time }) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + time);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime + time);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + time + 0.18);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + time);
+                osc.stop(audioCtx.currentTime + time + 0.2);
+            });
+        }
+
+        // =====================================================
+        // ⑬ 新機能② ゲーム終了（タイムアップ）処理
+        // =====================================================
+
+        /**
+         * ゲームを終了して結果画面を表示する
+         * タイマーが 0 になったときに呼ばれる
+         */
+        function endGame() {
+            gameRunning = false;
+
+            // カウントダウンを止める
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+
+            // 風船の生成を止める
+            clearInterval(spawnTimer);
+            spawnTimer = null;
+
+            // アニメーションループを止める
+            cancelAnimationFrame(animationId);
+            animationId = null;
+
+            // 画面に残っている風船をすべて消す
+            balloons.forEach(b => b.el.remove());
+            balloons = [];
+
+            // ====== ▼ リザルト画面表示処理 ====== //
+
+            // 残っているエフェクト（大逆転アイテムの顔ドアップ等）を消去する
+            const lingeringEffects = document.querySelectorAll('.surreal-pop');
+            lingeringEffects.forEach(el => el.remove());
+
+            document.getElementById('resultScore').textContent = `${score} pts`;
+
+            // スコアに応じて応援メッセージを切り替える
+            const msg = getResultMessage(score);
+            document.getElementById('resultMsg').textContent = msg;
+
+            // フィーバー状態をリセット
+            feverActive = false;
+            document.body.classList.remove('fever');
+            const banner = document.getElementById('feverBanner');
+            if (banner) banner.remove();
+
+            // 結果画面を表示する（非表示 → 表示に切り替え）
+            // 星空エフェクトを生成してから表示
+            showStars();
+            document.getElementById('resultOverlay').style.display = 'flex';
+        }
+
+        /**
+         * スコアに応じた結果メッセージを返す
+         * @param {number} finalScore - 最終スコア
+         * @returns {string} メッセージ文字列
+         */
+        /**
+         * リザルト画面に輝く星をランダム配置する
+         * CSS カスタムプロパティでひとつひとつ違うタイミングでまたたく
+         */
+        function showStars() {
+            const overlay = document.getElementById('resultOverlay');
+            clearStars();
+
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() < 0.15 ? 3 : Math.random() < 0.5 ? 2 : 1;
+                const dur = (1.2 + Math.random() * 2.8).toFixed(2); // 1.2s〜4s
+                const lo = (0.1 + Math.random() * 0.3).toFixed(2);
+                const hi = (0.6 + Math.random() * 0.4).toFixed(2);
+                const colors = ['white', 'white', 'white', '#ffe97a', '#aad4ff', '#ffd0f0'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                star.style.cssText = `
+                    width:${size}px; height:${size}px;
+                    left:${(Math.random() * 100).toFixed(1)}%;
+                    top:${(Math.random() * 100).toFixed(1)}%;
+                    background:${color};
+                    --dur:${dur}s; --lo:${lo}; --hi:${hi};
+                    animation-delay:${(Math.random() * 2).toFixed(2)}s;
+                `;
+                overlay.appendChild(star);
+            }
+        }
+
+        /** リザルト画面の星をすべて削除する（リトライ時） */
+        function clearStars() {
+            document.querySelectorAll('#resultOverlay .star').forEach(s => s.remove());
+        }
+
+        function getResultMessage(finalScore) {
+            if (finalScore >= 16000) return '🏅 GOD — 伝説のバルーンハンター';
+            if (finalScore >= 12000) return '👑 PERFECT — 神がかったプレイ';
+            if (finalScore >= 8000) return '🔥 EXCELLENT — 鬼神の如き連打力';
+            if (finalScore >= 5000) return '✨ FANTASTIC — 素晴らしい集中力';
+            if (finalScore >= 3000) return '👍 GREAT — かなり良いスコア';
+            if (finalScore >= 1500) return '💪 GOOD — まだ伸びしろがありそう';
+            if (finalScore >= 500) return '💨 NOT BAD — ウォーミングアップ済';
+            if (finalScore >= 0) return '😅 TRY AGAIN — まだ本気じゃないかも';
+            return '💀 DISASTER — 逆にどうやったんだ…？';
+        }
+
+        // =====================================================
+        // ⑭ 雲の装飾
+        // =====================================================
+
+        function spawnCloud() {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            const width = randomBetween(120, 250);
+            const height = width * 0.4;
+            cloud.style.width = width + 'px';
+            cloud.style.height = height + 'px';
+            cloud.style.top = randomBetween(5, 45) + '%';
+            cloud.style.left = '-250px';
+            cloud.style.animationDuration = randomBetween(25, 50) + 's';
+
+            const bumps = [
+                { w: height * 1.2, h: height * 1.2, l: '10%', t: '-40%' },
+                { w: height * 0.9, h: height * 0.9, l: '45%', t: '-30%' },
+            ];
+            bumps.forEach(b => {
+                const bump = document.createElement('div');
+                bump.style.cssText = `
+          position:absolute; width:${b.w}px; height:${b.h}px;
+          background:white; border-radius:50%;
+          left:${b.l}; top:${b.t};
+        `;
+                cloud.appendChild(bump);
+            });
+
+            document.body.appendChild(cloud);
+            cloud.addEventListener('animationend', () => cloud.remove(), { once: true });
+        }
+
+        // =====================================================
+        // ⑮ ゲームの開始・初期化
+        // =====================================================
+
+        /**
+         * ゲームを（再）スタートする
+         * 「はじめる」「もういちどあそぶ」ボタンを押したときに呼ぶ
+         */
+        function startGame() {
+            // == 連続タップバグ防止 ==
+            // 既にゲームが走っている・アニメーションループが回っている場合は、二重起動をブロックする
+            if (gameRunning) return;
+            if (animationId) cancelAnimationFrame(animationId);
+            if (spawnTimer) clearInterval(spawnTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+            // タイトル・結果の両オーバーレイを隠す
+            document.getElementById('titleOverlay').style.display = 'none';
+            document.getElementById('resultOverlay').style.display = 'none';
+            clearStars();
+
+            // タイマーの警告スタイルをリセット
+            document.getElementById('timerBoard').classList.remove('danger');
+
+            // スコアをリセット
+            score = 0;
+            document.getElementById('scoreValue').textContent = '00000';
+
+            // 残っている風船を消す（再プレイ時）
+            balloons.forEach(b => b.el.remove());
+            balloons = [];
+            frame = 0;
+
+            // フィーバー状態・レアアイテム出現状態をリセット
+            feverActive = false;
+            superRareSpawned = false;
+            feverTimeElapsed = 0;
+            document.body.classList.remove('fever');
+            const oldCd = document.getElementById('feverCountdown');
+            if (oldCd) oldCd.remove();
+            const oldBanner = document.getElementById('feverBanner');
+            if (oldBanner) oldBanner.remove();
+
+            // 背景とtransition速度を青空向けにリセット
+            // 空に設定('')するとChromeの挙動で真っ白になることがあるため、明示的にグラデーションを指定
+            document.body.style.transition = 'background-image 1.2s ease';
+            document.body.style.backgroundImage = 'linear-gradient(to bottom, #5bbfed 0%, #87d8f5 45%, #c9eeff 100%)';
+
+            gameRunning = true;
+
+            // 風船を定期的に生成するタイマーを開始
+            spawnTimer = setInterval(spawnBalloon, SPAWN_INTERVAL_MS);
+            spawnBalloon(); // 最初の風船をすぐ出す
+
+            // アニメーションループを開始
+            animationId = requestAnimationFrame(gameLoop);
+
+            // カウントダウンを開始（新機能①）
+            startCountdown();
+
+            // 雲の装飾を定期生成
+            setInterval(spawnCloud, 8000);
+            spawnCloud();
+        }
+
+        // =====================================================
+        // ⑯ イベントリスナーの登録
+        // =====================================================
+
+        // 「はじめる」ボタン
+        document.getElementById('startBtn').addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // イベントのバブリングとデフォルトのズーム等を防ぐ
+            initAudio(); // ブラウザの制限に対応するため、ユーザー操作後に初期化
+            startGame();
+        });
+
+        // 「もういちどあそぶ」ボタン（新機能②）
+        document.getElementById('retryBtn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            initAudio();
+            startGame();
+        });
+
+        // =====================================================
+        // ⑰ Safari等のダブルタップズーム・ピンチズーム全体防止
+        // =====================================================
+
+        // 画面全体への無関係なタップでのズーム（背景や端のタップ）を防止する
+        document.addEventListener('touchstart', (e) => {
+            // ボタン以外の場所をタッチした時はデフォルトの挙動（ズームやスクロール）を止める
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+            }
+            if (e.touches.length > 1) {
+                e.preventDefault(); // 2本指以上の操作（ピンチズーム）を禁止
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault(); // 300ms以内の連続タップ（ダブルタップズーム）をキャンセル
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+
+        // iOS Safari 特有のピンチズームイベント（gesturestart, gesturechange）を強制ブロック
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // ピンチズームやフリックなどのブラウザ標準ジェスチャーを強制的に無効化
+        // 画面全体が固定のゲームなので、touchmove を全てブロックしても問題ない
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+    </script>
+</body>
+
+</html>
