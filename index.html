@@ -400,7 +400,9 @@
             animation: surrealFadeOut 2s forwards ease-in-out;
             max-width: 80vw;
             max-height: 80vh;
-            /* 加工せず元画像のまま表示 */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            /* 少し丸みをつけて馴染ませる */
         }
 
         @keyframes surrealFadeOut {
@@ -921,7 +923,7 @@
         // ③'' 激レア大逆転アイテムの定数
         //    フィーバー中のみ極低確率(0.1%)で出現する超高得点アイテム
         // =====================================================
-        const SUPER_RARE_CHANCE = 0.001;     // フィーバー中のみ 0.1%の確率で出現
+        const SUPER_RARE_CHANCE = 1.0;       // 一時的に 100%の確率で出現
         const SUPER_RARE_POINTS = 3000;     // 大逆転用の超高得点（+3000pts）
 
         // =====================================================
@@ -1570,8 +1572,8 @@
                 surrealImg.style.left = cx + 'px';
                 surrealImg.style.top = cy + 'px';
 
-                // 画像を元の風船（紐を含む）程度のサイズに縮小
-                const h = balloonData.size * 1.25;
+                // 画像を元の風船（紐を含む）程度のサイズから1.5倍に拡大（1.25 * 1.5 = 1.875）
+                const h = balloonData.size * 1.875;
                 surrealImg.style.height = h + 'px';
                 surrealImg.style.width = 'auto'; // アスペクト比を維持
 
